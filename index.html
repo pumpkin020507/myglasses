@@ -1698,13 +1698,13 @@ function renderNextMonth(){
             ${tiers.map((t,i)=>`<div class="fc g6 mb6" style="flex-wrap:wrap">
               <span class="xs muted">達</span>
               <input type="number" value="${t.min}" style="width:58px;font-size:11px"
-                data-emp="${emp.id}" data-bk="${bk.key}" data-i="${i}" data-f="min">
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'min',this.value)">
               <span class="xs muted">～</span>
               <input type="number" value="${t.max??''}" placeholder="以上" style="width:58px;font-size:11px"
-                data-emp="${emp.id}" data-bk="${bk.key}" data-i="${i}" data-f="max">
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'max',this.value)">
               <span class="xs muted">→</span>
               <input type="number" value="${t.bonus}" style="width:70px;font-size:11px"
-                data-emp="${emp.id}" data-bk="${bk.key}" data-i="${i}" data-f="bonus">
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'bonus',this.value)">
               <span class="xs muted">元</span>
             </div>`).join('')||'<div class="xs muted">（無設定）</div>'}
             <button class="btn bo bsm mt8" style="font-size:10px" onclick="addEmpNmTier('${nk}','${emp.id}','${bk.key}')">＋</button>
@@ -1759,25 +1759,36 @@ function copyEmpTargetFrom(nk,toEmpId){
   save(); renderNextMonth();
 }
 
-function saveNextMonth(){
-  const nk=nextMonthKey();
+function updateNmTier(nk,empId,bkKey,i,field,value){
   if(!CFG.nextMonthTiers[nk]) CFG.nextMonthTiers[nk]={};
   if(!CFG.nextMonthTiers[nk]._empTargets) CFG.nextMonthTiers[nk]._empTargets={};
-
-  document.querySelectorAll('[data-emp][data-bk]').forEach(inp=>{
-    const empId=inp.dataset.emp, bkKey=inp.dataset.bk, i=+inp.dataset.i, f=inp.dataset.f;
-    if(!CFG.nextMonthTiers[nk]._empTargets[empId]) CFG.nextMonthTiers[nk]._empTargets[empId]={};
-    if(!CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]){
-      const emp=CFG.employees.find(e=>e.id===empId);
-      CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]=JSON.parse(JSON.stringify(emp?.bonusRules?.[bkKey]?.tiers||[]));
-    }
-    const arr=CFG.nextMonthTiers[nk]._empTargets[empId][bkKey];
-    if(arr[i]) arr[i][f]=f==='max'?(inp.value===''?null:+inp.value):+inp.value;
-  });
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId]){
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId]={};
+    BONUS_KEYS.forEach(bk=>{
+      if(emp?.bonusRules?.[bk.key]?.enabled)
+        CFG.nextMonthTiers[nk]._empTargets[empId][bk.key]=JSON.parse(JSON.stringify(emp.bonusRules[bk.key].tiers||[]));
+    });
+  }
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]){
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]=JSON.parse(JSON.stringify(emp?.bonusRules?.[bkKey]?.tiers||[]));
+  }
+  const arr=CFG.nextMonthTiers[nk]._empTargets[empId][bkKey];
+  if(arr[i]){
+    if(field==='max') arr[i].max=value===''?null:+value;
+    else arr[i][field]=+value;
+  }
+  // 不重新渲染（避免輸入中途被重置），只存資料
   save();
+}
+
+function saveNextMonth(){
+  // 資料已透過 updateNmTier 即時儲存，這裡只需提示
+  const nk=nextMonthKey();
   const[ny,nm]=nk.split('-');
+  save();
   alert(`✅ ${ny}年${parseInt(nm)}月各員工目標已儲存！\n封存薪資時會自動附在每人薪資單底部`);
-  renderNextMonth();
 }
 
 /* ══════════════════════════════════════
