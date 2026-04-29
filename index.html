@@ -1593,17 +1593,17 @@ function renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,s
           <div class="srow"><span class="slbl">底薪</span><span class="sval">$${fmt(r.sal?.base??r.emp.base)}</span></div>
           <div class="srow"><span class="slbl">達標獎金</span><span class="sval gold">$${fmt(r.achieveBonus)}</span></div>
           <div class="srow"><span class="slbl">團體績效</span><span class="sval gold">$${fmt(r.teamBonus)}</span></div>
-          <div class="srow"><span class="slbl">季獎金</span><span class="sval">$${fmt(r.sal?.seasonal??r.emp.seasonal??0)}</span></div>
-          <div class="srow"><span class="slbl">加班費</span><span class="sval">$${fmt(r.overtime)}</span></div>
-          ${CFG.customFields.filter(f=>f.type==='add').map(f=>`
+          ${(r.sal?.seasonal??r.emp.seasonal??0)>0?`<div class="srow"><span class="slbl">季獎金</span><span class="sval">$${fmt(r.sal?.seasonal??r.emp.seasonal??0)}</span></div>`:''}
+          ${r.overtime>0?`<div class="srow"><span class="slbl">加班費</span><span class="sval">$${fmt(r.overtime)}</span></div>`:''}
+          ${CFG.customFields.filter(f=>f.type==='add').filter(f=>Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0)>0).map(f=>`
           <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval">$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
         </div>
         <div>
-          <div class="srow"><span class="slbl">勞保（扣）</span><span class="sval red">−$${fmt(r.labor)}</span></div>
-          <div class="srow"><span class="slbl">健保（扣）</span><span class="sval red">−$${fmt(r.health)}</span></div>
-          <div class="srow"><span class="slbl">請假扣款</span><span class="sval red">−$${fmt(Math.abs(r.leave))}</span></div>
+          ${r.labor>0?`<div class="srow"><span class="slbl">勞保（扣）</span><span class="sval red">−$${fmt(r.labor)}</span></div>`:''}
+          ${r.health>0?`<div class="srow"><span class="slbl">健保（扣）</span><span class="sval red">−$${fmt(r.health)}</span></div>`:''}
+          ${Math.abs(r.leave||0)>0?`<div class="srow"><span class="slbl">請假扣款</span><span class="sval red">−$${fmt(Math.abs(r.leave))}</span></div>`:''}
           ${r.otherDeduct>0?`<div class="srow"><span class="slbl">${esc(r.emp.adjustments?.deductNote||'其他扣款')}</span><span class="sval red">−$${fmt(r.otherDeduct)}</span></div>`:''}
-          ${CFG.customFields.filter(f=>f.type==='sub').map(f=>`
+          ${CFG.customFields.filter(f=>f.type==='sub').filter(f=>Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0)>0).map(f=>`
           <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval red">−$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
         </div>
       </div>
