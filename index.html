@@ -283,13 +283,13 @@ tbody td{padding:7px 10px}
       <div class="card mt8">
         <div class="ct mb8"><span class="pip" style="background:var(--ac3)"></span>本月手動調整</div>
         <div class="tw" style="overflow-x:auto"><table>
-          <thead><tr><th>員工</th><th>請假扣款</th><th>加班費</th>
+          <thead><tr><th>員工</th><th>請假扣款</th><th>加班費</th><th>其他扣款</th><th>扣款備註</th>
             <th>售後扣：晶鑽單焦</th><th>售後扣：晶鑽變色</th><th>售後扣：BBGR</th>
             <th>售後扣：$1780框</th><th>售後扣：$2380框</th><th>售後扣：$2780框</th><th>售後扣：$3980框</th>
             <th>售後扣：墨鏡</th><th>備註</th></tr></thead>
           <tbody id="adjBody"></tbody>
         </table></div>
-        <div class="al aw mt8" style="font-size:11px">售後扣減：填入本月要扣除的副/支數（正數），系統自動扣除。</div>
+        <div class="al aw mt8" style="font-size:11px">其他扣款：可填入比例扣款、代扣等任何手動扣項，並在「扣款備註」說明原因。售後扣減填入要扣除的副/支數（正數）。</div>
       </div>
     </div>
     <div>
@@ -797,9 +797,13 @@ function renderAdjBody(){
         oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.leave=+this.value"></td>
       <td><input type="number" value="${adj.overtime||0}" style="width:75px"
         oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.overtime=+this.value"></td>
+      <td><input type="number" value="${adj.otherDeduct||0}" style="width:80px" placeholder="0"
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.otherDeduct=+this.value"></td>
+      <td><input value="${esc(adj.deductNote||'')}" placeholder="例：比例扣款" style="width:110px"
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.deductNote=this.value"></td>
       ${AS_KEYS.map(f=>`<td><input type="number" value="${as[f.k]||0}" min="0" style="width:70px" placeholder="0"
         oninput="if(!CFG.employees.find(x=>x.id==='${e.id}').afterService)CFG.employees.find(x=>x.id==='${e.id}').afterService={};CFG.employees.find(x=>x.id==='${e.id}').afterService['${f.k}']=+this.value"></td>`).join('')}
-      <td><input value="${adj.note||''}" placeholder="備註" style="width:100px"
+      <td><input value="${esc(adj.note||'')}" placeholder="備註" style="width:100px"
         oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.note=this.value"></td>
     </tr>`;
   }).join('');
@@ -1469,10 +1473,11 @@ async function parseReport(){
     const customSub=CFG.customFields.filter(f=>f.type==='sub').reduce((s,f)=>s+Math.abs((sal.customValues||{})[f.id]||0),0);
     const leave=adj.leave||0;
     const overtime=Math.abs(adj.overtime||0);
+    const otherDeduct=Math.abs(adj.otherDeduct||0);
     const labor=Math.abs(sal.labor||0);
     const health=Math.abs(sal.health||0);
     const income=sal.base+achieveBonus+teamBonus+(sal.seasonal||0)+customAdd+overtime;
-    const deduct=labor+health+customSub+Math.abs(leave);
+    const deduct=labor+health+customSub+Math.abs(leave)+otherDeduct;
     const net=income-deduct;
 
     // 薪資快照（封存用，完整記錄當下所有欄位）
@@ -1487,7 +1492,7 @@ async function parseReport(){
       }))
     };
 
-    return{emp,sal,st,bonuses,achieveBonus,teamBonus,leave,overtime,income,deduct,net,customAdd,customSub,labor,health,salarySnapshot};
+    return{emp,sal,st,bonuses,achieveBonus,teamBonus,leave,overtime,otherDeduct,income,deduct,net,customAdd,customSub,labor,health,salarySnapshot};
   });
 
   renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,storeTotal);
@@ -1591,14 +1596,15 @@ function renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,s
           <div class="srow"><span class="slbl">季獎金</span><span class="sval">$${fmt(r.sal?.seasonal??r.emp.seasonal??0)}</span></div>
           <div class="srow"><span class="slbl">加班費</span><span class="sval">$${fmt(r.overtime)}</span></div>
           ${CFG.customFields.filter(f=>f.type==='add').map(f=>`
-          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval">$${fmt((r.emp.customValues||{})[f.id]||0)}</span></div>`).join('')}
+          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval">$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
         </div>
         <div>
           <div class="srow"><span class="slbl">勞保（扣）</span><span class="sval red">−$${fmt(r.labor)}</span></div>
           <div class="srow"><span class="slbl">健保（扣）</span><span class="sval red">−$${fmt(r.health)}</span></div>
           <div class="srow"><span class="slbl">請假扣款</span><span class="sval red">−$${fmt(Math.abs(r.leave))}</span></div>
+          ${r.otherDeduct>0?`<div class="srow"><span class="slbl">${esc(r.emp.adjustments?.deductNote||'其他扣款')}</span><span class="sval red">−$${fmt(r.otherDeduct)}</span></div>`:''}
           ${CFG.customFields.filter(f=>f.type==='sub').map(f=>`
-          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval red">−$${fmt((r.emp.customValues||{})[f.id]||0)}</span></div>`).join('')}
+          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval red">−$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
         </div>
       </div>
       <div class="slip-tot">
@@ -2019,7 +2025,8 @@ function archiveMonth(){
       seasonal:r.sal?.seasonal??r.emp.seasonal??0,
       customValues:JSON.parse(JSON.stringify(r.emp.customValues||{})),
       achieveBonus:r.achieveBonus, teamBonus:r.teamBonus,
-      leave:r.leave, overtime:r.overtime,
+      leave:r.leave, overtime:r.overtime, otherDeduct:r.otherDeduct||0,
+      deductNote:r.emp.adjustments?.deductNote||'',
       income:r.income, deduct:r.deduct, net:r.net,
       productBonuses:r.bonuses,
       salesDetail:{
@@ -2217,7 +2224,7 @@ function updateHistField(hidx,ri,field,value){
   r[field]=value;
   // 重新計算 net
   const income=(r.base||0)+(r.achieveBonus||0)+(r.teamBonus||0)+(r.seasonal||0)+(r.overtime||0);
-  const deduct=(r.labor||0)+(r.health||0)+Math.abs(r.leave||0)+(r.extraDeduct||0);
+  const deduct=(r.labor||0)+(r.health||0)+Math.abs(r.leave||0)+(r.extraDeduct||0)+(r.otherDeduct||0);
   r.net=income-deduct+(r.extraAdd||0);
   r.income=income+(r.extraAdd||0);
   r.deduct=deduct;
