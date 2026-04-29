@@ -1605,6 +1605,28 @@ function renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,s
         <div class="xs muted">收入 $${fmt(r.income)}　扣款 $${fmt(r.deduct)}${r.emp.adjustments?.note?'　備註：'+esc(r.emp.adjustments.note):''}</div>
         <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${r.net>=0?'var(--ac3)':'var(--ac5)'}">實領 ${r.net>=0?'$'+fmt(r.net):'−$'+fmt(Math.abs(r.net))}</div>
       </div>
+      ${(()=>{
+        // 顯示下月目標
+        const nk=nextMonthKey();
+        const[ny,nm]=nk.split('-');
+        const empTargets=CFG.nextMonthTiers[nk]?._empTargets?.[r.emp.id]||{};
+        const br=r.emp.bonusRules||{};
+        const enabledKeys=BONUS_KEYS.filter(bk=>br[bk.key]?.enabled);
+        const rows=enabledKeys.map(bk=>{
+          const tiers=empTargets[bk.key]||br[bk.key]?.tiers||[];
+          if(!tiers.length) return '';
+          const sorted=[...tiers].sort((a,b)=>a.min-b.min);
+          return`<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:700;color:${bk.color};min-width:130px">${bk.label}</span>
+            ${sorted.map(t=>`<span class="badge bb" style="font-size:10px">${t.min}${t.max!=null?'～'+t.max:'以上'}${bk.unit} → <span class="gold">$${fmt(t.bonus)}</span></span>`).join('')}
+          </div>`;
+        }).filter(Boolean).join('');
+        if(!rows) return '';
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd);margin-top:8px">
+          <div class="xs muted mb8" style="font-weight:700">📋 ${ny}年${parseInt(nm)}月 獎金目標</div>
+          ${rows}
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 }
@@ -2126,10 +2148,42 @@ function renderHistorySlips(h,hidx){
         <div class="xs muted">收入 $${fmt(income+(r.extraAdd||0))}　扣款 $${fmt(deduct)}${r.note?'　備註：'+esc(r.note):''}</div>
         <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${net>=0?'var(--ac3)':'var(--ac5)'}">實領 ${net>=0?'$'+fmt(net):'−$'+fmt(Math.abs(net))}</div>
       </div>
-      ${targetRows?`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd)">
-        <div class="xs muted mb8" style="font-weight:700">📋 下月獎金目標（${nextMonthLabel(h.month)}）</div>
-        ${targetRows}
-      </div>`:''}
+      ${(()=>{
+        // 優先用封存的目標，若空則從當前下月設定讀取
+        const nk2=nextMonthKey_for_month(h.month);
+        let targets=r.nextTargets||{};
+        const hasArchived=Object.values(targets).some(t=>t.length>0);
+        if(!hasArchived){
+          // 嘗試從當前 nextMonthTiers 讀取
+          const empId=r.empId;
+          const empTargets=CFG.nextMonthTiers[nk2]?._empTargets?.[empId]||{};
+          // 找對應員工的 bonusRules
+          const emp=CFG.employees.find(e=>e.id===empId||e.name===r.empName);
+          if(emp){
+            BONUS_KEYS.forEach(bk=>{
+              if(emp.bonusRules?.[bk.key]?.enabled){
+                const t=empTargets[bk.key]||emp.bonusRules[bk.key]?.tiers||[];
+                if(t.length) targets[bk.key]=t;
+              }
+            });
+          }
+        }
+        const hasTargets=Object.values(targets).some(t=>t&&t.length>0);
+        if(!hasTargets) return `<div class="xs muted mt8" style="padding:8px;background:var(--s3);border-radius:var(--r)">📋 下月目標未設定，請到「📋 下月目標」頁面設定後重新封存</div>`;
+        const[ny,nm]=nk2.split('-');
+        const tRows=Object.entries(targets).filter(([,t])=>t&&t.length>0).map(([key,tiers])=>{
+          const bk=BONUS_KEYS.find(b=>b.key===key); if(!bk) return '';
+          const sorted=[...tiers].sort((a,b)=>a.min-b.min);
+          return`<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:700;color:${bk.color};min-width:130px">${bk.label}</span>
+            ${sorted.map(t=>`<span class="badge bb" style="font-size:10px">${t.min}${t.max!=null?'～'+t.max:'以上'}${bk.unit} → <span class="gold">$${fmt(t.bonus)}</span></span>`).join('')}
+          </div>`;
+        }).filter(Boolean).join('');
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd);margin-top:8px">
+          <div class="xs muted mb8" style="font-weight:700">📋 ${ny}年${parseInt(nm)}月 獎金目標</div>
+          ${tRows}
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 }
@@ -2139,6 +2193,11 @@ function nextMonthLabel(month){
   let ny=parseInt(cy)||new Date().getFullYear(), nm=(parseInt(cm)||1)+1;
   if(nm>12){nm=1;ny++;}
   return `${ny}年${nm}月`;
+}
+function nextMonthKey_for_month(month){
+  const[cy,cm]=(month||'').split('-');
+  let ny=parseInt(cy)||new Date().getFullYear(), nm=(parseInt(cm)||1)+1;
+  if(nm>12){nm=1;ny++;} return `${ny}-${String(nm).padStart(2,'0')}`;
 }
 
 function updateHistField(hidx,ri,field,value){
