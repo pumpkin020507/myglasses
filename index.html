@@ -794,17 +794,17 @@ function renderAdjBody(){
     return`<tr>
       <td><strong>${esc(e.name)||'?'}</strong></td>
       <td><input type="number" value="${adj.leave||0}" style="width:75px" placeholder="0"
-        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.leave=+this.value"></td>
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.leave=+this.value;save()"></td>
       <td><input type="number" value="${adj.overtime||0}" style="width:75px"
-        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.overtime=+this.value"></td>
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.overtime=+this.value;save()"></td>
       <td><input type="number" value="${adj.otherDeduct||0}" style="width:80px" placeholder="0"
-        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.otherDeduct=+this.value"></td>
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.otherDeduct=+this.value;save()"></td>
       <td><input value="${esc(adj.deductNote||'')}" placeholder="例：比例扣款" style="width:110px"
-        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.deductNote=this.value"></td>
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.deductNote=this.value;save()"></td>
       ${AS_KEYS.map(f=>`<td><input type="number" value="${as[f.k]||0}" min="0" style="width:70px" placeholder="0"
-        oninput="if(!CFG.employees.find(x=>x.id==='${e.id}').afterService)CFG.employees.find(x=>x.id==='${e.id}').afterService={};CFG.employees.find(x=>x.id==='${e.id}').afterService['${f.k}']=+this.value"></td>`).join('')}
+        oninput="const _e=CFG.employees.find(x=>x.id==='${e.id}');if(!_e.afterService)_e.afterService={};_e.afterService['${f.k}']=+this.value;save()"></td>`).join('')}
       <td><input value="${esc(adj.note||'')}" placeholder="備註" style="width:100px"
-        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.note=this.value"></td>
+        oninput="CFG.employees.find(x=>x.id==='${e.id}').adjustments.note=this.value;save()"></td>
     </tr>`;
   }).join('');
 }
