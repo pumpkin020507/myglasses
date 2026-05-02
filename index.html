@@ -1287,6 +1287,9 @@ async function parseReport(){
     allCustProdMap[key].push({seller,time:t});
   });
 
+  // 已使用的預訂記錄（避免同顧客+商品重複配對）
+  const usedPreorders=new Set();
+
   function getSeller(r){
     const st=String(r[iStatus]||'').trim();
     if(st!=='已付款（尾款）') return String(r[iSeller]||'').trim();
@@ -1295,8 +1298,16 @@ async function parseReport(){
     const tailTime=String(r[iTxTime2]||'').trim();
     const txId=String(r[iTxId]||'').trim();
     if(cust&&prod){
-      const candidates=(allCustProdMap[`${cust}|${prod}`]||[]).filter(p=>p.time<tailTime);
-      if(candidates.length) return candidates.sort((a,b)=>b.time.localeCompare(a.time))[0].seller;
+      const key=`${cust}|${prod}`;
+      const candidates=(allCustProdMap[key]||[])
+        .filter(p=>p.time<tailTime && !usedPreorders.has(`${key}|${p.time}|${p.seller}`))
+        .sort((a,b)=>b.time.localeCompare(a.time));
+      if(candidates.length){
+        const best=candidates[0];
+        // 標記此預訂記錄已被使用
+        usedPreorders.add(`${key}|${best.time}|${best.seller}`);
+        return best.seller;
+      }
     }
     if(preorderSeller[txId]) return preorderSeller[txId];
     return String(r[iSeller]||'').trim();
