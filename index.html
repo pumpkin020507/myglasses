@@ -1,0 +1,2659 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Glasses 薪資系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#07080c;--s1:#0d1018;--s2:#131820;--s3:#1a2130;
+  --bd:#1f2a3a;--bd2:#283548;
+  --ac:#4f8ef5;--ac2:#2ecc71;--ac3:#f0b429;--ac4:#a855f7;--ac5:#ef4444;--ac6:#06b6d4;
+  --tx:#e1eaf7;--t2:#6b84a3;--t3:#3a4f6a;
+  --r:8px;--r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:13px;line-height:1.6;min-height:100vh}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+header{height:50px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:300}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px}
+.lm{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--ac),var(--ac4));display:flex;align-items:center;justify-content:center;font-size:13px}
+.hmon{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd2);border-radius:20px;padding:3px 12px 3px 9px;font-size:12px;color:var(--t2)}
+.hmon input{background:transparent;border:none;color:var(--tx);font-family:inherit;font-size:12px;width:105px;cursor:pointer;outline:none}
+
+nav{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 18px;display:flex;overflow-x:auto}
+.nt{padding:10px 16px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.nt:hover{color:var(--tx)}.nt.on{color:var(--ac);border-bottom-color:var(--ac)}
+.nbg{background:var(--ac);color:#000;font-size:9px;font-weight:800;border-radius:10px;padding:1px 5px;margin-left:3px}
+
+.main{padding:16px 18px 60px;max-width:1600px}
+.pg{display:none}.pg.on{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);padding:14px}
+.card+.card{margin-top:10px}
+.chd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ct{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:5px}
+.pip{width:4px;height:4px;border-radius:50%;background:var(--ac);display:inline-block;flex-shrink:0}
+
+input,select,textarea{width:100%;padding:5px 9px;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:12px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--ac)}
+input[type=number]{font-family:'JetBrains Mono',monospace}
+input[type=checkbox]{width:auto;cursor:pointer}
+select option{background:var(--s2)}
+
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:var(--r);border:1px solid transparent;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;transition:all .15s;white-space:nowrap}
+.bp{background:var(--ac);color:#000}.bp:hover{filter:brightness(1.1)}
+.bg2{background:var(--ac2);color:#000}.bg2:hover{filter:brightness(1.1)}
+.bo{background:transparent;color:var(--t2);border-color:var(--bd2)}.bo:hover{border-color:var(--ac);color:var(--ac)}
+.bgh{background:transparent;border:none;color:var(--t3);padding:2px 6px;font-size:11px;cursor:pointer}.bgh:hover{color:var(--ac5)}
+.bsm{padding:3px 9px;font-size:11px}
+.row-btn{display:flex;gap:5px;flex-wrap:wrap}
+
+.tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--s2);color:var(--t2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(79,142,245,.04)}
+tbody td{padding:7px 10px}
+.tr{text-align:right}.tc{text-align:center}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.badge{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:700}
+.bb{background:rgba(79,142,245,.15);color:var(--ac)}
+.bg3{background:rgba(46,204,113,.15);color:var(--ac2)}
+.br{background:rgba(239,68,68,.15);color:var(--ac5)}
+.bo2{background:rgba(240,180,41,.15);color:var(--ac3)}
+.bp2{background:rgba(168,85,247,.15);color:var(--ac4)}
+.bc{background:rgba(6,182,212,.15);color:var(--ac6)}
+
+.upz{border:2px dashed var(--bd2);border-radius:var(--r2);padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upz:hover,.upz.drag{border-color:var(--ac);background:rgba(79,142,245,.05)}
+.upz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+
+.al{padding:8px 12px;border-radius:var(--r);margin-bottom:8px;font-size:12px;border:1px solid}
+.ai{background:rgba(79,142,245,.08);border-color:rgba(79,142,245,.3);color:var(--ac)}
+.aok{background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.3);color:var(--ac2)}
+.aw{background:rgba(240,180,41,.08);border-color:rgba(240,180,41,.3);color:var(--ac3)}
+.ae{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:var(--ac5)}
+
+.sc{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);padding:12px;display:flex;align-items:flex-start;gap:9px}
+.si{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:1px}
+.sv{font-size:17px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.md{background:var(--s1);border:1px solid var(--bd2);border-radius:14px;padding:20px;width:680px;max-width:97vw;max-height:93vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+.mdtit{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.mdf{display:flex;justify-content:flex-end;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid var(--bd)}
+
+/* SLIP */
+.slip{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:14px;margin-bottom:10px;page-break-inside:avoid}
+.slip-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.slip-name{display:flex;align-items:center;gap:9px}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#000;flex-shrink:0}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--bd)}
+.srow:last-child{border-bottom:none}
+.slbl{font-size:11px;color:var(--t2)}
+.sval{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.slip-tot{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:var(--r);margin-top:8px;border:1px solid var(--bd2)}
+.pb{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;margin:6px 0}
+.pf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--ac),var(--ac4));transition:width .5s}
+
+/* EMP CARD */
+.emp-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:12px;margin-bottom:8px}
+.emp-card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+
+.sec{font-size:16px;font-weight:800;margin-bottom:2px}
+.secsub{font-size:12px;color:var(--t2);margin-bottom:12px}
+.hidden{display:none!important}
+.fc{display:flex;align-items:center}.fb{display:flex;align-items:center;justify-content:space-between}
+.g6{gap:6px}.g8{gap:8px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+.xs{font-size:11px}.sm{font-size:12px}
+.muted{color:var(--t3)}.t2c{color:var(--t2)}
+.gold{color:var(--ac3)}.green{color:var(--ac2)}.red{color:var(--ac5)}.blue{color:var(--ac)}
+.w100{width:100%}
+.divider{height:1px;background:var(--bd);margin:10px 0}
+
+@media(max-width:768px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}.main{padding:10px}}
+@media print{
+  header,nav,.btn,.upz,#printHide{display:none!important}
+  .slip{border:1px solid #ccc;page-break-inside:avoid;background:#fff;color:#000}
+  body{background:#fff;color:#000}
+}
+
+/* TIER TABLE */
+.tier-row{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--bd)}
+.tier-row:last-child{border-bottom:none}
+.tier-num{width:16px;height:16px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--t3);flex-shrink:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="lm">👓</div>My Glasses 薪資系統 <span style="font-size:10px;color:var(--t3);margin-left:4px">v5.2</span></div>
+  <div class="hdr-r" style="display:flex;align-items:center;gap:10px">
+    <div id="dataStatus" class="xs" style="color:var(--t3)"></div>
+    <div id="gdriveStatus" class="xs muted"></div>
+    <button id="gdriveBtn" class="btn bo bsm" onclick="handleGdriveAuth()" style="display:none">
+      ☁️ 連接 Google Drive
+    </button>
+    <div class="hmon">📅<input type="month" id="hdrMonth" onchange="onMonthChange()"></div>
+  </div>
+</header>
+
+<nav>
+  <button class="nt on" id="tab-template" onclick="go('template')">📋 獎金預設模板</button>
+  <button class="nt" id="tab-emp" onclick="go('emp')">👤 員工設定</button>
+  <button class="nt" id="tab-import" onclick="go('import')">📂 上傳報表</button>
+  <button class="nt" id="tab-result" onclick="go('result')">📊 薪資單<span class="nbg hidden" id="resBadge">0</span></button>
+  <button class="nt" id="tab-history" onclick="go('history')">📁 歷史薪資<span class="nbg hidden" id="histBadge">0</span></button>
+  <button class="nt" id="tab-next" onclick="go('next')">📋 下月目標</button>
+</nav>
+
+<div class="main">
+
+<!-- ══ PAGE: 模板 ══ -->
+<div class="pg on" id="page-template">
+  <div class="sec">獎金預設模板</div>
+  <div class="secsub">新增員工時自動套用此模板，每位員工可再個別調整。</div>
+  <div class="g2">
+    <div>
+      <div class="card">
+        <div class="ct mb8"><span class="pip" style="background:var(--ac3)"></span>團體績效門檻（全店業績）</div>
+        <div class="al ai" style="font-size:11px">以所有付清訂單金額加總，非累加，達到哪檔給哪檔</div>
+        <div id="team_tiers"></div>
+        <button class="btn bo bsm mt8" onclick="addTeamTier()">＋ 新增門檻</button>
+      </div>
+      <div class="card">
+        <div class="ct mb8"><span class="pip" style="background:var(--ac2)"></span>☁️ Google Drive 同步設定</div>
+        <div class="al ai mb8" style="font-size:11px">填入後可跨電腦同步所有設定與報表預訂資料，任何電腦登入 Google 即可使用</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div><label>Client ID</label><input id="gClientId" placeholder="xxxxx.apps.googleusercontent.com" style="font-size:11px"
+            oninput="localStorage.setItem('mg_gclient',this.value);initGdrive()"></div>
+          <div><label>API Key</label><input id="gApiKey" placeholder="AIzaSy..." style="font-size:11px"
+            oninput="localStorage.setItem('mg_gapikey',this.value);initGdrive()"></div>
+        </div>
+        <div class="row-btn">
+          <button class="btn bo bsm" onclick="handleGdriveAuth()">☁️ 連接 / 重新授權</button>
+          <button class="btn bo bsm" onclick="gdriveUpload(true)">⬆ 手動上傳到 Drive</button>
+          <button class="btn bo bsm" onclick="gdriveDownload()">⬇ 從 Drive 下載</button>
+        </div>
+        <div id="gdriveCardStatus" class="xs muted mt8"></div>
+      </div>
+      <div class="card">
+        <div class="ct mb8"><span class="pip" style="background:var(--t3)"></span>本機備份</div>
+        <div class="row-btn">
+          <button class="btn bo bsm" onclick="loadDemo()">📦 載入範例</button>
+          <button class="btn bo bsm" onclick="exportCfg()">💾 匯出設定</button>
+          <button class="btn bo bsm" onclick="D('cfgFile').click()">📂 匯入設定</button>
+          <input type="file" id="cfgFile" accept=".json" class="hidden" onchange="importCfg(event)">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ct mb10"><span class="pip" style="background:var(--ac2)"></span>各品類獎金預設階梯</div>
+        <div class="al ai mb10" style="font-size:11px">新增員工時自動複製這份設定，之後可針對個人調整</div>
+        <div id="templateTiers"></div>
+      </div>
+    </div>
+  </div>
+  <div class="fc g8 mt12" style="justify-content:flex-end">
+    <button class="btn bp" onclick="go('emp')">下一步：員工設定 →</button>
+  </div>
+</div>
+
+<!-- ══ PAGE: 員工設定 ══ -->
+<div class="pg" id="page-emp">
+  <div class="sec">員工設定</div>
+  <div class="secsub">每位員工有獨立的薪資欄位與獎金規則，可個別調整。</div>
+  <div class="fb mb12">
+    <div class="row-btn">
+      <button class="btn bg2" onclick="addEmp()">＋ 新增員工</button>
+      <button class="btn bo bsm" onclick="addCustomField()">＋ 新增薪資欄位</button>
+      <span class="xs muted" id="empCount"></span>
+    </div>
+    <div class="row-btn">
+      <button class="btn bo bsm" onclick="go('template')">← 返回模板</button>
+      <button class="btn bp bsm" onclick="go('import')">下一步 →</button>
+    </div>
+  </div>
+
+  <!-- 自訂欄位說明 -->
+  <div id="customFieldsBar" class="mb8 hidden">
+    <div class="fc g6 flex-wrap" id="customFieldsList"></div>
+  </div>
+
+  <div id="empList"></div>
+</div>
+
+<!-- ══ PAGE: 上傳報表 ══ -->
+<div class="pg" id="page-import">
+  <div class="sec">上傳銷售報表</div>
+  <div class="secsub">上傳銷售報表，系統自動合併所有歷史報表的預訂資料，正確處理跨月尾款歸屬。</div>
+  <div class="g2">
+    <div>
+      <!-- 上傳區 -->
+      <div class="card">
+        <div class="ct mb8"><span class="pip"></span>上傳報表（加入檔案庫）</div>
+        <div class="upz" id="upZone">
+          <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" onchange="handleFile(event,'cur')">
+          <div style="font-size:24px;margin-bottom:5px">📊</div>
+          <div style="font-weight:700;margin-bottom:2px">點擊或拖曳 Excel / CSV</div>
+          <div class="xs muted">上傳後自動加入檔案庫，可累積多個月份</div>
+        </div>
+        <div id="upMsg" class="mt8 hidden"></div>
+      </div>
+
+      <!-- 檔案庫 -->
+      <div class="card mt8">
+        <div class="chd">
+          <div class="ct"><span class="pip" style="background:var(--ac3)"></span>報表檔案庫</div>
+          <span class="xs muted" id="archiveCount">尚無檔案</span>
+        </div>
+        <div class="al aw mb8" style="font-size:11px">
+          ⚠ 報表的「預訂對應資料」會長期保存（用於跨月查詢），但「原始報表內容」每次開啟頁面後需重新上傳，才能執行計算。顯示「需重傳才能計算」的月份請重新上傳一次。
+        </div>
+        <div id="archiveList"></div>
+      </div>
+
+      <!-- 解析按鈕 -->
+      <div class="card mt8">
+        <div class="ct mb8"><span class="pip" style="background:var(--ac2)"></span>計算月份</div>
+        <div class="al ai mb8" style="font-size:11px">選擇要計算哪個月的薪資，必須已上傳該月報表</div>
+        <select id="calcMonthSel" style="margin-bottom:8px"></select>
+        <button class="btn bp w100" id="parseBtn" onclick="parseReport()">⚡ 解析並計算薪資單</button>
+        <pre id="debugOut" class="hidden mt8" style="background:var(--s3);border:1px solid var(--bd2);border-radius:var(--r);padding:10px;font-size:11px;color:var(--ac2);white-space:pre-wrap;line-height:1.7"></pre>
+      </div>
+
+      <!-- 手動調整 -->
+      <div class="card mt8">
+        <div class="ct mb8"><span class="pip" style="background:var(--ac3)"></span>本月手動調整</div>
+        <div class="tw" style="overflow-x:auto"><table>
+          <thead><tr><th>員工</th><th>請假扣款</th><th>加班費</th><th>其他扣款</th><th>扣款備註</th>
+            <th>售後扣：晶鑽單焦</th><th>售後扣：晶鑽變色</th><th>售後扣：BBGR</th>
+            <th>售後扣：$1780框</th><th>售後扣：$2380框</th><th>售後扣：$2780框</th><th>售後扣：$3980框</th>
+            <th>售後扣：墨鏡</th><th>備註</th></tr></thead>
+          <tbody id="adjBody"></tbody>
+        </table></div>
+        <div class="al aw mt8" style="font-size:11px">其他扣款：可填入比例扣款、代扣等任何手動扣項，並在「扣款備註」說明原因。售後扣減填入要扣除的副/支數（正數）。</div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="chd"><div class="ct"><span class="pip" style="background:var(--ac2)"></span>資料預覽</div><span class="xs muted" id="prevInfo"></span></div>
+        <div id="prevEmpty" class="xs muted" style="padding:16px 0;text-align:center">上傳後顯示</div>
+        <div id="prevTbl" class="hidden" style="max-height:600px;overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: 薪資單 ══ -->
+<div class="pg" id="page-result">
+  <div id="resEmpty" style="padding:40px;text-align:center;color:var(--t3)">
+    <div style="font-size:36px;margin-bottom:8px">📊</div>
+    <div style="font-size:14px;font-weight:700;color:var(--t2);margin-bottom:4px">尚無計算結果</div>
+    <button class="btn bp mt12" onclick="go('import')">前往上傳報表</button>
+  </div>
+  <div id="resContent" class="hidden">
+    <div class="fb mb12" id="printHide">
+      <div><div class="sec" id="resTit"></div><div class="sm t2c" id="resSub"></div></div>
+      <div class="row-btn">
+        <button class="btn bp bsm" onclick="archiveMonth()">📁 封存本月薪資</button>
+        <button class="btn bo bsm" onclick="exportPayroll()">📥 匯出薪資表</button>
+        <button class="btn bo bsm" onclick="exportSalesReport()">📥 匯出銷售明細</button>
+        <button class="btn bo bsm" onclick="window.print()">🖨 列印</button>
+      </div>
+    </div>
+    <div class="g4 mb12" id="resStats"></div>
+    <div class="card mb12">
+      <div class="ct mb10"><span class="pip" style="background:var(--ac6)"></span>全店銷售概況</div>
+      <div id="storeOverview"></div>
+    </div>
+    <div id="slipList"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: 下月目標 ══ -->
+<div class="pg" id="page-next">
+  <div class="fb mb12">
+    <div><div class="sec">下月獎金目標</div><div class="sm t2c" id="nextLbl"></div></div>
+    <div class="row-btn">
+      <button class="btn bp bsm" onclick="saveNextMonth()">💾 儲存下月目標</button>
+      <button class="btn bo bsm" onclick="exportNextMonth()">📥 匯出 Excel</button>
+    </div>
+  </div>
+  <div class="al ai mb12" style="font-size:11px">修改下月各品類門檻後儲存，切換到下月計算時自動套用到所有人</div>
+  <div id="nextContent"></div>
+</div>
+
+<!-- ══ PAGE: 歷史薪資 ══ -->
+<div class="pg" id="page-history">
+  <div class="fb mb12">
+    <div><div class="sec">歷史薪資封存</div><div class="sm t2c">每月計算完後封存，規則修改不影響歷史記錄</div></div>
+    <div class="row-btn">
+      <button class="btn bo bsm" onclick="exportAllHistory()">📥 匯出全部歷史</button>
+    </div>
+  </div>
+  <div id="historyEmpty" class="xs muted" style="padding:40px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">📁</div>
+    <div style="font-size:14px;font-weight:700;color:var(--t2);margin-bottom:4px">尚無封存薪資</div>
+    <div>計算薪資後點「封存本月薪資」即可保存</div>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+</div>
+
+<!-- ══ MODAL: 當月薪資設定 ══ -->
+<div class="mo hidden" id="monthlySalaryModal">
+  <div class="md" style="width:560px">
+    <div class="mdtit">💰 <span id="msSalaryName"></span> — <span id="msSalaryMonth"></span> 薪資設定</div>
+    <div class="al ai mb12" style="font-size:11px">此月份的獨立薪資設定，計算當月薪資時自動套用。若未設定則沿用員工預設值。</div>
+    <div id="msSalaryContent"></div>
+    <div class="mdf">
+      <button class="btn bo" onclick="closeModal('monthlySalaryModal')">取消</button>
+      <button class="btn bo bsm" style="border-color:var(--ac5);color:var(--ac5)" onclick="deleteMonthlySalary()">🗑 刪除此月設定</button>
+      <button class="btn bp" onclick="saveMonthlySalary()">💾 儲存此月設定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: 員工獎金規則 ══ -->
+<div class="mo hidden" id="empBonusModal">
+  <div class="md">
+    <div class="mdtit">🎯 <span id="empBonusName"></span> 的獎金規則</div>
+    <div class="al ai mb12" style="font-size:11px">勾選此員工可計算的品項，並設定專屬階梯。未勾選的品項完全不計算。</div>
+    <div id="empBonusContent"></div>
+    <div class="mdf">
+      <button class="btn bo" onclick="closeModal('empBonusModal')">取消</button>
+      <button class="btn bo bsm" onclick="copyBonusFrom()" style="border-color:var(--ac6);color:var(--ac6)">📋 複製他人規則</button>
+      <button class="btn bp" onclick="saveEmpBonus()">儲存規則</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: 複製規則 ══ -->
+<div class="mo hidden" id="copyModal">
+  <div class="md" style="width:400px">
+    <div class="mdtit">📋 複製誰的規則？</div>
+    <div id="copyList"></div>
+    <div class="mdf"><button class="btn bo" onclick="closeModal('copyModal')">取消</button></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CONSTANTS
+══════════════════════════════════════ */
+const BONUS_KEYS=[
+  {key:'jz',   label:'台灣晶鑽單焦鏡片',   unit:'副', color:'#4f8ef5'},
+  {key:'jzc',  label:'台灣晶鑽變色藍光',   unit:'副', color:'#06b6d4'},
+  {key:'bbgr', label:'BBGR多焦＋紓壓訂製', unit:'副', color:'#a855f7'},
+  {key:'sg',   label:'墨鏡（B開頭）',       unit:'支', color:'#f0b429'},
+  {key:'f1780',label:'鏡框 $1,780',          unit:'支', color:'#4ade80'},
+  {key:'f2380',label:'鏡框 $2,380',          unit:'支', color:'#2ecc71'},
+  {key:'f2780',label:'鏡框 $2,780',          unit:'支', color:'#16a34a'},
+  {key:'f3980',label:'鏡框 $3,980',          unit:'支', color:'#166534'},
+  {key:'mgr_jz',   label:'全店晶鑽單焦（店長加給）', unit:'副', color:'#f59e0b'},
+  {key:'mgr_frame',label:'全店鏡框（店長加給）', unit:'支', color:'#d97706'},
+];
+
+const JZ_FULL=['1.56折射率升級抗藍光, 庫存兩片','1.56折射率升級抗藍光, 庫存一片+高散光一片','1.56折射率升級抗藍光, 高散光兩片','1.60折射率, 庫存兩片','1.60折射率, 庫存一片+高散光一片','1.60折射率, 高散光兩片','1.60折射率升級抗藍光, 庫存兩片','1.60折射率升級抗藍光, 庫存一片+高散光一片','1.60折射率升級抗藍光, 高散光兩片','1.67折射率, 庫存兩片','1.67折射率, 庫存一片+高散光一片','1.67折射率, 高散光兩片','1.67折射率升級抗藍光, 庫存兩片','1.67折射率升級抗藍光, 庫存一片+高散光一片','1.67折射率升級抗藍光, 高散光兩片'];
+const JZ_HALF=['1.56折射率升級抗藍光, 庫存一片+訂製一片','1.56折射率升級抗藍光, 高散光一片+訂製一片','1.60折射率, 庫存一片+訂製一片','1.60折射率, 高散光一片+訂製一片','1.60折射率升級抗藍光, 庫存一片+訂製一片','1.60折射率升級抗藍光, 高散光一片+訂製一片','1.67折射率, 庫存一片+訂製一片','1.67折射率, 高散光一片+訂製一片','1.67折射率升級抗藍光, 庫存一片+訂製一片','1.67折射率升級抗藍光, 高散光一片+訂製一片'];
+const JZC_FULL=['1.56折射率, 庫存兩片','1.56折射率, 庫存一片+高散光一片','1.56折射率, 高散光兩片','1.60折射率, 庫存兩片','1.60折射率, 庫存一片+高散光一片','1.60折射率, 高散光兩片','1.67折射率, 庫存兩片'];
+const JZC_HALF=['1.56折射率, 庫存一片+訂製一片','1.56折射率, 高散光一片+訂製一片','1.60折射率, 庫存一片+訂製一片','1.60折射率, 高散光一片+訂製一片','1.67折射率, 庫存一片+訂製一片'];
+const BBGR_PRODS=['【加購】法國BBGR多焦訂製鏡片','【加購】法國BBGR紓壓訂製鏡片'];
+const FRAME_PRICES=[1780,2380,2780,3980];
+const VALID_STATUS=['付清','已付款（尾款）'];
+const STORES=['My glasses民生店','My glasses河堤店','雙店支援'];
+const ROLES=['門市人員','驗光師','店長'];
+const ROLE_COLORS={門市人員:'var(--ac2)',驗光師:'var(--ac)',店長:'var(--ac3)'};
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+const CFG={
+  templateTiers:{},
+  teamTiers:[],
+  customFields:[],
+  employees:[],
+  nextMonthTiers:{},
+  reportArchive:[],
+  payrollHistory:[],
+  monthlySalaries:{},
+  monthlyAdj:{}, // {'YYYY-MM':{'empId':{leave,overtime,otherDeduct,deductNote,note,afterService:{}}}}
+};
+let _editEmpId=null;
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',async ()=>{
+  const now=new Date();
+  D('hdrMonth').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  loadStorage();
+
+  // 顯示資料狀態
+  const ds=D('dataStatus');
+  if(ds){
+    if(CFG.employees.length){
+      ds.textContent=`✅ ${CFG.employees.length}位員工`;
+      ds.style.color='var(--ac2)';
+    }else{
+      ds.textContent='⚠️ 無本機資料，請連接 Drive 或匯入';
+      ds.style.color='var(--ac3)';
+    }
+  }
+
+  renderAll(); setupDrag(); renderNextMonth();
+  let dbLoaded=0;
+  for(const a of (CFG.reportArchive||[])){
+    if(a.month){
+      const rows=await loadRows(a.month);
+      if(rows&&rows.length>1) dbLoaded++;
+      else console.warn('IndexedDB 無資料：',a.month);
+    }
+  }
+  console.log(`IndexedDB：${dbLoaded}/${CFG.reportArchive?.length||0} 份已載入`);
+  renderArchiveList();
+  setTimeout(initGdrive,1500);
+});
+
+function go(p){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(x=>x.classList.remove('on'));
+  D('page-'+p).classList.add('on'); D('tab-'+p).classList.add('on');
+  if(p==='next') renderNextMonth();
+  if(p==='history') renderHistoryList();
+}
+function onMonthChange(){renderNextMonth();}
+
+/* ══════════════════════════════════════
+   STORAGE - 分開存：設定 / 報表庫
+══════════════════════════════════════ */
+function save(){
+  try{
+    const cfg={
+      templateTiers:CFG.templateTiers,
+      teamTiers:CFG.teamTiers,
+      customFields:CFG.customFields,
+      nextMonthTiers:CFG.nextMonthTiers,
+      employees:CFG.employees,
+      payrollHistory:CFG.payrollHistory||[],
+      monthlySalaries:CFG.monthlySalaries||{},
+    };
+    localStorage.setItem('mg_v4_cfg',JSON.stringify(cfg));
+    // 調整資料獨立存（不受 Drive 同步覆蓋）
+    localStorage.setItem('mg_v4_adj',JSON.stringify(CFG.monthlyAdj||{}));
+  }catch(e){console.error('設定儲存失敗',e);}
+
+  // 報表庫：只存必要欄位（不存完整 rows）
+  try{
+    const archLite=(CFG.reportArchive||[]).map(a=>({
+      name:a.name, month:a.month, uploadedAt:a.uploadedAt, rowCount:a.rowCount,
+      preorderMap:a.preorderMap||{},
+      custProdMap:a.custProdMap||{}
+    }));
+    const archStr=JSON.stringify(archLite);
+    if(archStr.length>4*1024*1024){
+      const trimmed=[...archLite];
+      while(trimmed.length>0){
+        trimmed.pop();
+        const ts=JSON.stringify(trimmed);
+        if(ts.length<=4*1024*1024){
+          localStorage.setItem('mg_v4_arch',ts);
+          return;
+        }
+      }
+    }
+    localStorage.setItem('mg_v4_arch',archStr);
+  }catch(e){
+    console.error('報表庫儲存失敗',e);
+    try{
+      const mini=(CFG.reportArchive||[]).map(a=>({name:a.name,month:a.month,uploadedAt:a.uploadedAt,rowCount:a.rowCount,preorderMap:a.preorderMap||{}}));
+      localStorage.setItem('mg_v4_arch',JSON.stringify(mini));
+    }catch(e2){console.error('最小化儲存也失敗',e2);}
+  }
+
+  // 自動同步到 Google Drive（有授權時）
+  if(_gAccessToken) setTimeout(()=>gdriveUpload(false),500);
+}
+
+const _EMBEDDED_BACKUP={"templateTiers": {"jz": [{"min": 20, "max": null, "bonus": 3600}, {"min": 40, "max": null, "bonus": 2000}, {"min": 50, "max": null, "bonus": 2000}, {"min": 60, "max": null, "bonus": 2000}], "jzc": [{"min": 5, "max": null, "bonus": 1000}, {"min": 10, "max": null, "bonus": 1000}], "bbgr": [{"min": 4, "max": null, "bonus": 1000}], "sg": [{"min": 7, "max": null, "bonus": 500}], "f1780": [{"min": 25, "max": null, "bonus": 2500}, {"min": 35, "max": null, "bonus": 1000}], "f2380": [{"min": 25, "max": null, "bonus": 3000}, {"min": 35, "max": null, "bonus": 1000}], "f2780": [{"min": 20, "max": null, "bonus": 2800}, {"min": 30, "max": null, "bonus": 1000}], "f3980": [{"min": 10, "max": null, "bonus": 1500}], "mgr_jz": [{"min": 215, "max": null, "bonus": 2000}], "mgr_frame": [{"min": 250, "max": null, "bonus": 2000}]}, "teamTiers": [{"min": 600000, "bonus": 6000}, {"min": 800000, "bonus": 12000}, {"min": 1000000, "bonus": 20000}], "customFields": [{"id": "u2_q8la", "label": "代扣稅額", "type": "sub"}, {"id": "u3_t79c", "label": "驗光所", "type": "add"}, {"id": "u4_tayt", "label": "店長加級", "type": "add"}], "nextMonthTiers": {"2026-05": {"_empTargets": {}}}, "employees": [{"id": "u1_gqjb", "name": "邱柏豪", "store": "My glasses民生店", "role": "店長", "base": 36000, "labor": 1145, "health": 1428, "dependents": 0, "seasonal": 0, "customValues": {"u4_tayt": 7000, "u3_t79c": 10000, "u2_q8la": 2390}, "bonusRules": {"jz": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 3600}, {"min": 40, "max": null, "bonus": 5600}, {"min": 60, "max": null, "bonus": 7600}, {"min": 80, "max": null, "bonus": 9600}]}, "jzc": {"enabled": true, "tiers": [{"min": 5, "max": null, "bonus": 1000}, {"min": 10, "max": null, "bonus": 2000}]}, "bbgr": {"enabled": true, "tiers": [{"min": 4, "max": null, "bonus": 1000}]}, "sg": {"enabled": true, "tiers": [{"min": 7, "max": null, "bonus": 500}]}, "f1780": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 2500}, {"min": 35, "max": null, "bonus": 3500}]}, "f2380": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 3000}, {"min": 35, "max": null, "bonus": 4000}]}, "f2780": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 2800}, {"min": 30, "max": null, "bonus": 3800}]}, "f3980": {"enabled": true, "tiers": []}, "mgr_jz": {"enabled": true, "tiers": [{"min": 250, "max": null, "bonus": 2000}]}, "mgr_frame": {"enabled": true, "tiers": [{"min": 280, "max": null, "bonus": 2000}]}}, "adjustments": {"leave": 0, "overtime": 533, "note": ""}, "afterService": {"jz": 1}}, {"id": "u5_lsmd", "name": "謝采紘", "store": "My glasses民生店", "role": "驗光師", "base": 36000, "labor": -1145, "health": -1301, "dependents": 0, "seasonal": 0, "customValues": {}, "bonusRules": {"jz": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 3600}, {"min": 30, "max": null, "bonus": 5600}, {"min": 40, "max": null, "bonus": 7600}, {"min": 50, "max": null, "bonus": 9600}, {"min": 60, "max": null, "bonus": 11600}, {"min": 70, "max": null, "bonus": 13600}, {"min": 80, "max": null, "bonus": 15600}]}, "jzc": {"enabled": true, "tiers": [{"min": 5, "max": null, "bonus": 1000}, {"min": 10, "max": null, "bonus": 2000}]}, "bbgr": {"enabled": true, "tiers": [{"min": 4, "max": null, "bonus": 1000}]}, "sg": {"enabled": true, "tiers": [{"min": 7, "max": null, "bonus": 500}]}, "f1780": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 2500}, {"min": 35, "max": null, "bonus": 3500}]}, "f2380": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 3000}, {"min": 35, "max": null, "bonus": 4000}]}, "f2780": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 2800}, {"min": 30, "max": null, "bonus": 3800}]}, "f3980": {"enabled": true, "tiers": [{"min": 10, "max": null, "bonus": 1500}]}, "mgr_jz": {"enabled": false, "tiers": []}, "mgr_frame": {"enabled": false, "tiers": []}}, "adjustments": {"leave": 0, "overtime": 944, "note": ""}, "afterService": {"jz": 1.5}}, {"id": "u6_gey5", "name": "夏珮雯", "store": "My glasses河堤店", "role": "店長", "base": 36000, "labor": 1145, "health": 1359, "dependents": 3, "seasonal": 0, "customValues": {"u4_tayt": 0}, "bonusRules": {"jz": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 3600}, {"min": 30, "max": null, "bonus": 5600}, {"min": 40, "max": null, "bonus": 7600}, {"min": 50, "max": null, "bonus": 9600}, {"min": 55, "max": null, "bonus": 11600}, {"min": 65, "max": null, "bonus": 13600}, {"min": 80, "max": null, "bonus": 15600}]}, "jzc": {"enabled": true, "tiers": [{"min": 5, "max": null, "bonus": 1000}, {"min": 10, "max": null, "bonus": 2000}]}, "bbgr": {"enabled": true, "tiers": [{"min": 4, "max": null, "bonus": 1000}]}, "sg": {"enabled": true, "tiers": [{"min": 7, "max": null, "bonus": 500}]}, "f1780": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 2500}, {"min": 35, "max": null, "bonus": 3500}]}, "f2380": {"enabled": true, "tiers": [{"min": 25, "max": null, "bonus": 3000}, {"min": 35, "max": null, "bonus": 4000}]}, "f2780": {"enabled": true, "tiers": [{"min": 20, "max": null, "bonus": 2800}, {"min": 30, "max": null, "bonus": 3800}]}, "f3980": {"enabled": true, "tiers": [{"min": 10, "max": null, "bonus": 1600}]}, "mgr_jz": {"enabled": true, "tiers": []}, "mgr_frame": {"enabled": true, "tiers": []}}, "adjustments": {"leave": 0, "overtime": 0, "note": ""}, "afterService": {}}, {"id": "u7_mqzk", "name": "鍾郁琇", "store": "My glasses河堤店", "role": "驗光師", "base": 36000, "labor": 0, "health": 0, "dependents": 0, "seasonal": 0, "customValues": {"u3_t79c": 10000}, "bonusRules": {"jz": {"enabled": true, "tiers": [{"min": 30, "max": null, "bonus": 2000}, {"min": 80, "max": null, "bonus": 2000}]}, "jzc": {"enabled": true, "tiers": []}, "bbgr": {"enabled": true, "tiers": []}, "sg": {"enabled": true, "tiers": []}, "f1780": {"enabled": true, "tiers": []}, "f2380": {"enabled": true, "tiers": []}, "f2780": {"enabled": true, "tiers": []}, "f3980": {"enabled": true, "tiers": []}, "mgr_jz": {"enabled": false, "tiers": []}, "mgr_frame": {"enabled": false, "tiers": []}}, "adjustments": {"leave": 0, "overtime": 0, "note": ""}, "afterService": {}}, {"id": "u8_wup0", "name": "李羿萱", "store": "雙店支援", "role": "驗光師", "base": 36000, "labor": 0, "health": 0, "dependents": 0, "seasonal": 0, "customValues": {}, "bonusRules": {"jz": {"enabled": true, "tiers": [{"min": 30, "max": null, "bonus": 2000}]}, "jzc": {"enabled": true, "tiers": []}, "bbgr": {"enabled": true, "tiers": []}, "sg": {"enabled": true, "tiers": []}, "f1780": {"enabled": true, "tiers": []}, "f2380": {"enabled": true, "tiers": []}, "f2780": {"enabled": true, "tiers": []}, "f3980": {"enabled": true, "tiers": []}, "mgr_jz": {"enabled": false, "tiers": []}, "mgr_frame": {"enabled": false, "tiers": []}}, "adjustments": {"leave": 0, "overtime": 0, "note": ""}, "afterService": {}}], "payrollHistory": [], "monthlySalaries": {}, "reportArchive": [{"name": "2026-03.xls", "month": "2026-03", "uploadedAt": "2026/4/27", "rowCount": 1162, "preorderMap": {"5758960528221373802": "鍾郁琇", "14344110209739366476": "謝采紘", "8419438042556568147": "鍾郁琇", "13474247783803402026": "謝采紘", "17591180765833909547": "謝采紘", "7850685967461796917": "謝采紘", "11254515503267889991": "李羿萱", "15719062673310195363": "鍾郁琇", "2225810774696296131": "謝采紘", "16043404502773152452": "李羿萱", "3172493133470018861": "夏珮雯", "2117337089107605973": "鍾郁琇", "13711101692745725058": "夏珮雯", "8583997776350242829": "邱柏豪", "7320239432775521075": "邱柏豪", "408254224873035088": "李羿萱", "14876935161044114900": "夏珮雯", "3949157407850863005": "夏珮雯", "5444550071269751468": "李羿萱", "16209661808571537900": "李羿萱", "11052619342720371939": "夏珮雯", "16877132399255569694": "夏珮雯", "18161332844889742008": "李羿萱", "4470621504388399937": "鍾郁琇", "10798183115737577072": "鍾郁琇", "5830068257814565050": "鍾郁琇", "14960168323733570767": "鍾郁琇", "5638605244502109738": "邱柏豪", "15608504509729732168": "夏珮雯", "10047060343603124139": "邱柏豪", "1123973228532069986": "鍾郁琇", "2323887792792266900": "夏珮雯", "9395693496553028866": "夏珮雯", "9398946314546449461": "夏珮雯", "10705168397463963542": "鍾郁琇", "903800040536572939": "鍾郁琇", "6869233011664595905": "夏珮雯", "16051522797728313177": "邱柏豪", "17306832401999799234": "邱柏豪", "2669589647799559581": "夏珮雯", "6132133475879082943": "夏珮雯", "569353672348347793": "鍾郁琇", "9436282286954077952": "鍾郁琇", "791278152630615698": "邱柏豪", "5494844456389290226": "夏珮雯", "2648479081621364018": "鍾郁琇", "2110809101466859708": "夏珮雯", "1264919487428759175": "謝采紘", "883404924494010232": "謝采紘", "15106350463363782094": "夏珮雯", "7660066913908345521": "夏珮雯", "12004250755315287325": "夏珮雯", "6846594577631207717": "邱柏豪", "2096008585197336128": "鍾郁琇", "11297565435730293766": "鍾郁琇"}, "custProdMap": {"王清憲|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/30  7:14 PM"}], "王清憲|C484鈦金屬大半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/30  7:14 PM"}], "陳永和|【加購】台灣晶鑽單焦鏡片": [{"seller": "謝采紘", "time": "2026/03/30  7:06 PM"}, {"seller": "謝采紘", "time": "2026/03/30  7:06 PM"}], "陳永和|T217多邊形鈦眼鏡": [{"seller": "謝采紘", "time": "2026/03/30  7:06 PM"}], "陳永和|T62純鈦大飛行員眼鏡": [{"seller": "謝采紘", "time": "2026/03/30  7:06 PM"}], "陳禹睿|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/30  2:03 PM"}], "甘欣怡|【加購】台灣晶鑽單焦鏡片": [{"seller": "謝采紘", "time": "2026/03/29  3:50 PM"}], "甘欣怡|M004兩用磁吸飛行員眼鏡": [{"seller": "謝采紘", "time": "2026/03/29  3:50 PM"}], "張建德|TF003-設計師款": [{"seller": "謝采紘", "time": "2026/03/29  2:10 PM"}], "張建德|【加購】台灣晶鑽單焦鏡片": [{"seller": "謝采紘", "time": "2026/03/29  2:10 PM"}], "陳靜雯|C479鈦金屬眼鏡": [{"seller": "謝采紘", "time": "2026/03/28  1:30 PM"}], "陳靜雯|T189鈦經典半框眼鏡": [{"seller": "謝采紘", "time": "2026/03/28  1:30 PM"}], "陳靜雯|【加購】一般近視度數鏡片": [{"seller": "謝采紘", "time": "2026/03/28  1:30 PM"}, {"seller": "謝采紘", "time": "2026/03/28  1:30 PM"}], "王御全|【加購】全視線變色鏡片(單焦點)": [{"seller": "李羿萱", "time": "2026/03/25  7:21 PM"}], "王御全|T62純鈦大飛行員眼鏡": [{"seller": "李羿萱", "time": "2026/03/25  7:21 PM"}], "劉佩冠|T257鈦金屬小框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/24  6:14 PM"}], "劉佩冠|【蔡司鏡片】多焦經典舒適Light 3D濾藍光鏡片": [{"seller": "鍾郁琇", "time": "2026/03/24  6:14 PM"}], "林煜承|【加購】台灣晶鑽單焦鏡片": [{"seller": "謝采紘", "time": "2026/03/23  6:28 PM"}], "林煜承|M004兩用磁吸飛行員眼鏡": [{"seller": "謝采紘", "time": "2026/03/23  6:28 PM"}], "馮聖夫|【加購】台灣晶鑽單焦鏡片": [{"seller": "李羿萱", "time": "2026/03/22  6:30 PM"}], "馮聖夫|M004兩用磁吸飛行員眼鏡": [{"seller": "李羿萱", "time": "2026/03/22  6:30 PM"}], "林耀輝|【加購】台灣晶鑽變色藍光鏡片": [{"seller": "夏珮雯", "time": "2026/03/22  4:04 PM"}], "林耀輝|T62純鈦大飛行員眼鏡": [{"seller": "夏珮雯", "time": "2026/03/22  4:04 PM"}], "劉蕙綺|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/21  5:45 PM"}], "劉蕙綺|T214圓框鈦眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/21  5:45 PM"}], "顏巧雯|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/21  2:14 PM"}], "顏巧雯|T217多邊形鈦眼鏡": [{"seller": "夏珮雯", "time": "2026/03/21  2:14 PM"}], "蔡易烜|T262鈦無槓大飛行員眼鏡": [{"seller": "邱柏豪", "time": "2026/03/20  8:06 PM"}], "蔡易烜|【加購】一般近視度數鏡片": [{"seller": "邱柏豪", "time": "2026/03/20  8:06 PM"}], "高瑜璘|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/20  5:53 PM"}], "高瑜璘|C462鈦金屬眼鏡": [{"seller": "邱柏豪", "time": "2026/03/20  5:53 PM"}], "顏禎緯|C497鈦金屬眼鏡": [{"seller": "李羿萱", "time": "2026/03/18  7:00 PM"}], "顏禎緯|【加購】台灣晶鑽變色藍光鏡片": [{"seller": "李羿萱", "time": "2026/03/18  7:00 PM"}], "周育安|TF007-設計師款": [{"seller": "夏珮雯", "time": "2026/03/18  6:42 PM"}], "周育安|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/18  6:42 PM"}], "陳威鋌|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/18  4:06 PM"}], "陳威鋌|T213半眉框鈦眼鏡": [{"seller": "夏珮雯", "time": "2026/03/18  4:06 PM"}], "王善賢|【加購】法國BBGR多焦訂製鏡片": [{"seller": "李羿萱", "time": "2026/03/18  3:04 PM"}], "王善賢|M005兩用磁吸膠圈眼鏡": [{"seller": "李羿萱", "time": "2026/03/18  3:04 PM"}], "林湘宜|【加購】台灣晶鑽單焦鏡片": [{"seller": "李羿萱", "time": "2026/03/18  2:22 PM"}], "林湘宜|C336霧圈鈦金屬小圓框眼鏡": [{"seller": "李羿萱", "time": "2026/03/18  2:22 PM"}], "張堯惠|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/18  2:08 PM"}], "張堯惠|M005兩用磁吸膠圈眼鏡": [{"seller": "夏珮雯", "time": "2026/03/18  2:08 PM"}], "林心儀|【加購】法國BBGR多焦訂製鏡片": [{"seller": "夏珮雯", "time": "2026/03/17  5:57 PM"}], "林心儀|T217多邊形鈦眼鏡": [{"seller": "夏珮雯", "time": "2026/03/17  5:57 PM"}], "孫培禎|【加購】台灣晶鑽單焦鏡片": [{"seller": "李羿萱", "time": "2026/03/17  2:55 PM"}], "孫培禎|T255經典半框眼鏡": [{"seller": "李羿萱", "time": "2026/03/17  2:55 PM"}], "蘇筱祺|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/17  2:09 PM"}], "蘇筱祺|單購磁吸墨鏡組(M005)": [{"seller": "鍾郁琇", "time": "2026/03/17  2:09 PM"}], "蘇筱祺|M005兩用磁吸膠圈眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/17  2:09 PM"}], "洪翊瑄|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/16  8:10 PM"}], "洪翊瑄|C494鈦金屬TR眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/16  8:10 PM"}], "范皖華|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/16  6:48 PM"}, {"seller": "鍾郁琇", "time": "2026/03/16  6:48 PM"}], "范皖華|T217多邊形鈦眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/16  6:48 PM"}], "范皖華|C462鈦金屬眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/16  6:48 PM"}], "林富蒂|M005兩用磁吸膠圈眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/16  1:59 PM"}], "朱秀梅|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/15  7:31 PM"}], "朱秀梅|C491鈦金屬透圈眼鏡": [{"seller": "邱柏豪", "time": "2026/03/15  7:31 PM"}], "謝明洧|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/15  7:15 PM"}, {"seller": "鍾郁琇", "time": "2026/03/09  6:34 PM"}], "陳志豪|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/14  8:01 PM"}], "陳志豪|C397鈦金屬超寬半框眼鏡": [{"seller": "邱柏豪", "time": "2026/03/14  8:01 PM"}], "葉浚佑|T181鈦細半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/14  7:46 PM"}], "葉浚佑|【蔡司鏡片】單焦濾藍光鏡片": [{"seller": "鍾郁琇", "time": "2026/03/14  7:46 PM"}], "林建廷|TF003-設計師款": [{"seller": "夏珮雯", "time": "2026/03/14  6:12 PM"}], "林建廷|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/14  6:12 PM"}], "蔡玲玉|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/14  4:06 PM"}], "蔡玲玉|M005兩用磁吸膠圈眼鏡": [{"seller": "夏珮雯", "time": "2026/03/14  4:06 PM"}], "許鶴龍|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/13  5:27 PM"}], "許鶴龍|M004兩用磁吸飛行員眼鏡": [{"seller": "夏珮雯", "time": "2026/03/13  5:27 PM"}], "謝青樺|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/13  4:14 PM"}], "謝青樺|M012兩用磁吸眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/13  4:14 PM"}], "顏碧玲|T257鈦金屬小框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/13  2:28 PM"}], "顏碧玲|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/03/13  2:28 PM"}], "洪屏軒|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/11  9:03 PM"}], "洪屏軒|T108純鈦雙層圓框眼鏡": [{"seller": "夏珮雯", "time": "2026/03/11  9:03 PM"}], "李思儀|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/11  7:49 PM"}], "李思儀|T214圓框鈦眼鏡": [{"seller": "邱柏豪", "time": "2026/03/11  7:49 PM"}], "龍金妹|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/11  6:18 PM"}], "龍金妹|T214圓框鈦眼鏡": [{"seller": "邱柏豪", "time": "2026/03/11  6:18 PM"}], "楊鎮謙|TF003-設計師款": [{"seller": "夏珮雯", "time": "2026/03/10  4:12 PM"}], "楊鎮謙|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/10  4:12 PM"}], "余喬真|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/09  7:08 PM"}], "余喬真|T217多邊形鈦眼鏡": [{"seller": "夏珮雯", "time": "2026/03/09  7:08 PM"}], "謝明洧|T255經典半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/09  6:34 PM"}], "謝明洧|M003兩用磁吸半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/09  6:34 PM"}], "許雅婷|T247鈦加厚小框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/08  8:29 PM"}], "許雅婷|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/03/08  8:29 PM"}], "蕭政緯|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/03/08  3:02 PM"}], "蕭政緯|M007兩用磁吸多邊形眼鏡": [{"seller": "邱柏豪", "time": "2026/03/08  3:02 PM"}], "徐孟君|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/07  9:03 PM"}], "徐孟君|M003兩用磁吸半框眼鏡": [{"seller": "夏珮雯", "time": "2026/03/07  9:03 PM"}], "陳威綸|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/03/07  4:33 PM"}], "陳威綸|T170鈦金屬飛行員眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/07  4:33 PM"}], "王信皓|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/07  3:59 PM"}], "王信皓|M005兩用磁吸膠圈眼鏡": [{"seller": "夏珮雯", "time": "2026/03/07  3:59 PM"}], "李建廷|【加購】台灣晶鑽單焦鏡片": [{"seller": "謝采紘", "time": "2026/03/06  9:13 PM"}], "李建廷|T241鈦半框眼鏡": [{"seller": "謝采紘", "time": "2026/03/06  9:13 PM"}], "王梅湘|C516鈦金屬眼鏡": [{"seller": "謝采紘", "time": "2026/03/05  6:57 PM"}], "王梅湘|【加購】法國BBGR多焦訂製鏡片": [{"seller": "謝采紘", "time": "2026/03/05  6:57 PM"}], "楊依靜|T247鈦加厚小框眼鏡": [{"seller": "夏珮雯", "time": "2026/03/05  3:34 PM"}], "楊依靜|【加購】法國BBGR多焦訂製鏡片": [{"seller": "夏珮雯", "time": "2026/03/05  3:34 PM"}], "卓唯綾|【加購】台灣晶鑽變色藍光鏡片": [{"seller": "夏珮雯", "time": "2026/03/04  3:12 PM"}], "卓唯綾|C483彈性TR眼鏡": [{"seller": "夏珮雯", "time": "2026/03/04  3:12 PM"}], "李家豪|【加購】台灣晶鑽單焦鏡片": [{"seller": "夏珮雯", "time": "2026/03/03  8:06 PM"}], "李家豪|T255經典半框眼鏡": [{"seller": "夏珮雯", "time": "2026/03/03  8:06 PM"}], "楊淑琪|C497鈦金屬眼鏡": [{"seller": "邱柏豪", "time": "2026/03/03  5:17 PM"}], "楊淑琪|【加購】法國BBGR多焦訂製鏡片": [{"seller": "邱柏豪", "time": "2026/03/03  5:17 PM"}], "蘇小玲|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/03  3:05 PM"}], "蘇小玲|M005兩用磁吸膠圈眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/03  3:05 PM"}], "林崇宇|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/03/02  3:07 PM"}], "林崇宇|T189鈦經典半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/03/02  3:07 PM"}]}}, {"name": "2026-02月.xls", "month": "2026-02", "uploadedAt": "2026/4/27", "rowCount": 1062, "preorderMap": {"4419528921720036006": "鍾郁琇", "3247870486705374506": "邱柏豪", "7949824630541879086": "邱柏豪", "1545560018185791653": "吳文琥", "4844230086549534817": "鍾郁琇", "1211650549330465699": "鍾郁琇", "6304579273611271005": "鍾郁琇", "5211871117586353003": "鍾郁琇", "16025602315409163834": "邱柏豪", "5500058051357794289": "夏珮雯", "13796347297137541836": "謝采紘", "3334097218032717234": "夏珮雯", "919729449733525366": "夏珮雯", "4317235437481164011": "邱柏豪", "1133573781239802260": "夏珮雯", "1025317007578076829": "夏珮雯", "1279298492894844353": "邱柏豪", "9473738253627026510": "夏珮雯", "11510670047665344027": "謝采紘", "11160471103635719227": "夏珮雯", "2447936359814750681": "夏珮雯", "9877043612703577546": "吳文琥", "9450965737631362630": "夏珮雯", "16997697014815985395": "吳文琥", "887133528270025793": "鍾郁琇", "16407653253726883878": "夏珮雯", "17568937817107095846": "吳文琥", "4770373139127190653": "吳文琥", "4610175726072694376": "謝采紘", "7751472928376330626": "鍾郁琇", "3520857173389410646": "夏珮雯", "758879800686876506": "夏珮雯", "2715290825406844945": "夏珮雯", "16207923110518859386": "邱柏豪", "4154201292260275617": "夏珮雯", "18370158891145092326": "鍾郁琇", "9571592703140929013": "吳文琥", "3540631247877735392": "吳文琥", "4786757097289937998": "夏珮雯", "12719252220411851494": "謝采紘", "548204593409678670": "謝采紘", "5405447907676929844": "謝采紘"}, "custProdMap": {"柯佩瑩|【加購】台灣晶鑽單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/02/27  1:39 PM"}], "柯佩瑩|C461鈦金屬眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/27  1:39 PM"}], "劉松茂|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/02/24  8:55 PM"}], "劉松茂|B262飛行員墨鏡": [{"seller": "邱柏豪", "time": "2026/02/24  8:55 PM"}], "劉松茂|T243鈦飛行員眼鏡": [{"seller": "邱柏豪", "time": "2026/02/24  8:55 PM"}], "涂世達|【加購】台灣晶鑽單焦鏡片": [{"seller": "邱柏豪", "time": "2026/02/24  4:45 PM"}], "涂世達|C483彈性TR眼鏡": [{"seller": "邱柏豪", "time": "2026/02/24  4:45 PM"}], "游筱娟|C513金屬圓框眼鏡": [{"seller": "吳文琥", "time": "2026/02/23  9:11 PM"}], "游筱娟|【加購】台廠晶鑽單焦鏡片": [{"seller": "吳文琥", "time": "2026/02/23  9:11 PM"}], "邱睦詠|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/02/22  6:02 PM"}], "邱睦詠|C462鈦金屬眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/22  6:02 PM"}], "彭衣富山|【加購】台廠晶鑽變色藍光鏡片": [{"seller": "鍾郁琇", "time": "2026/02/22  2:51 PM"}], "彭衣富山|T198經典鈦飛行員眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/22  2:51 PM"}], "陳進忠|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/02/21  6:05 PM"}], "陳進忠|M003兩用磁吸半框眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/21  6:05 PM"}], "劉立成|【加購】全視線變色鏡片(單焦點)": [{"seller": "鍾郁琇", "time": "2026/02/21  5:00 PM"}], "劉立成|T170鈦金屬飛行員眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/21  5:00 PM"}], "葉育展|【加購】台廠晶鑽變色藍光鏡片": [{"seller": "邱柏豪", "time": "2026/02/15  2:12 PM"}], "葉育展|【加購】法國BBGR單焦鏡片": [{"seller": "邱柏豪", "time": "2026/02/15  2:12 PM"}], "葉育展|M004兩用磁吸飛行員眼鏡": [{"seller": "邱柏豪", "time": "2026/02/15  2:12 PM"}], "葉育展|T193純鈦超寬飛行員眼鏡": [{"seller": "邱柏豪", "time": "2026/02/15  2:12 PM"}], "郭宇柔|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/14  8:01 PM"}], "郭宇柔|T225半框鈦眼鏡": [{"seller": "夏珮雯", "time": "2026/02/14  8:01 PM"}], "張程|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/13  7:15 PM"}, {"seller": "謝采紘", "time": "2026/02/13  7:15 PM"}], "張程|M003兩用磁吸半框眼鏡": [{"seller": "謝采紘", "time": "2026/02/13  7:15 PM"}], "張程|純鈦鼻墊": [{"seller": "謝采紘", "time": "2026/02/13  7:15 PM"}], "孫腕隆|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/13  4:21 PM"}], "孫腕隆|C449鈦金屬多邊形眼鏡": [{"seller": "夏珮雯", "time": "2026/02/13  4:21 PM"}], "陳見皇|C445鈦金屬多邊形眼鏡": [{"seller": "夏珮雯", "time": "2026/02/13  3:33 PM"}], "何昇融|T243鈦飛行員眼鏡": [{"seller": "邱柏豪", "time": "2026/02/12  8:05 PM"}], "何昇融|【加購】台廠晶鑽變色藍光鏡片": [{"seller": "邱柏豪", "time": "2026/02/12  8:05 PM"}], "劉宇紘|高散差價": [{"seller": "夏珮雯", "time": "2026/02/12  7:26 PM"}], "劉宇紘|C461鈦金屬眼鏡": [{"seller": "夏珮雯", "time": "2026/02/12  7:26 PM"}], "劉宇紘|【加購】一般近視度數鏡片": [{"seller": "夏珮雯", "time": "2026/02/12  7:26 PM"}], "許育寧|【加購】台廠晶鑽變色藍光鏡片": [{"seller": "夏珮雯", "time": "2026/02/12  7:01 PM"}], "許育寧|T198經典鈦飛行員眼鏡": [{"seller": "夏珮雯", "time": "2026/02/12  7:01 PM"}], "韓慧雯|【加購】法國BBGR單焦鏡片": [{"seller": "邱柏豪", "time": "2026/02/12  1:53 PM"}], "韓慧雯|T217多邊形鈦眼鏡": [{"seller": "邱柏豪", "time": "2026/02/12  1:53 PM"}], "黃已芹|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/11  8:49 PM"}], "黃已芹|T173全鈦色扁形眼鏡": [{"seller": "夏珮雯", "time": "2026/02/11  8:49 PM"}], "林張茜|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/11  8:36 PM"}], "林張茜|T201經典鈦圓框眼鏡": [{"seller": "謝采紘", "time": "2026/02/11  8:36 PM"}], "林湟清|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/10  6:19 PM"}], "林湟清|T188鈦經典半框眼鏡": [{"seller": "夏珮雯", "time": "2026/02/10  6:19 PM"}], "蒲玠丞|T255經典半框眼鏡": [{"seller": "夏珮雯", "time": "2026/02/10  1:52 PM"}], "蒲玠丞|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/10  1:52 PM"}], "陳志謙|T262鈦無槓大飛行員眼鏡": [{"seller": "吳文琥", "time": "2026/02/09  7:29 PM"}], "陳志謙|【加購】法國BBGR單焦鏡片": [{"seller": "吳文琥", "time": "2026/02/09  7:29 PM"}], "邱昱綺|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/09  7:10 PM"}], "邱昱綺|T161純鈦經典多邊形眼鏡": [{"seller": "夏珮雯", "time": "2026/02/09  7:10 PM"}], "蔡智元|【加購】法國BBGR單焦鏡片": [{"seller": "吳文琥", "time": "2026/02/08  8:01 PM"}], "蔡智元|M005兩用磁吸膠圈眼鏡": [{"seller": "吳文琥", "time": "2026/02/08  8:01 PM"}], "劉玟秀|M015兩用磁吸眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/08  4:22 PM"}], "劉玟秀|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/02/08  4:22 PM"}], "劉玟秀|【加購】法國BBGR單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/02/08  4:22 PM"}], "劉玟秀|M004兩用磁吸飛行員眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/08  4:22 PM"}], "羅永祥|M009兩用磁吸TR眼鏡": [{"seller": "夏珮雯", "time": "2026/02/07  5:38 PM"}], "羅永祥|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/07  5:38 PM"}], "陳奕翔|【加購】法國BBGR單焦鏡片": [{"seller": "吳文琥", "time": "2026/02/07  5:18 PM"}, {"seller": "吳文琥", "time": "2026/02/07  5:18 PM"}], "陳奕翔|T213半眉框鈦眼鏡": [{"seller": "吳文琥", "time": "2026/02/07  5:18 PM"}], "沈逸塵|【加購】法國BBGR多焦訂製鏡片": [{"seller": "吳文琥", "time": "2026/02/06  8:48 PM"}], "沈逸塵|C484鈦金屬大半框眼鏡": [{"seller": "吳文琥", "time": "2026/02/06  8:48 PM"}], "李世偉|【加購】台廠晶鑽變色藍光鏡片": [{"seller": "謝采紘", "time": "2026/02/06  7:07 PM"}], "李世偉|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/06  7:07 PM"}], "李世偉|M003兩用磁吸半框眼鏡": [{"seller": "謝采紘", "time": "2026/02/06  7:07 PM"}], "林曉薇|T247鈦加厚小框眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/06  6:06 PM"}], "林曉薇|【加購】法國BBGR單焦鏡片": [{"seller": "鍾郁琇", "time": "2026/02/06  6:06 PM"}], "李鈺凰|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/05  7:52 PM"}], "李鈺凰|T170鈦金屬飛行員眼鏡": [{"seller": "夏珮雯", "time": "2026/02/05  7:52 PM"}], "陳羿琇|M015兩用磁吸眼鏡": [{"seller": "夏珮雯", "time": "2026/02/04  9:28 PM"}], "陳羿琇|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/04  9:28 PM"}], "陳禹睿|T188鈦經典半框眼鏡": [{"seller": "夏珮雯", "time": "2026/02/04  8:31 PM"}], "陳彥軒|【加購】法國BBGR單焦鏡片": [{"seller": "邱柏豪", "time": "2026/02/04  7:20 PM"}], "陳彥軒|C462鈦金屬眼鏡": [{"seller": "邱柏豪", "time": "2026/02/04  7:20 PM"}], "陳柏睿|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/04  3:27 PM"}], "陳柏睿|C461鈦金屬眼鏡": [{"seller": "夏珮雯", "time": "2026/02/04  3:27 PM"}], "朱庭儀|C493鈦金屬眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/03  9:34 PM"}], "朱庭儀|【加購】法國BBGR多焦訂製鏡片": [{"seller": "鍾郁琇", "time": "2026/02/03  9:34 PM"}], "朱庭儀|M004兩用磁吸飛行員眼鏡": [{"seller": "鍾郁琇", "time": "2026/02/03  9:34 PM"}], "黃斌蔚|【加購】一般近視度數鏡片": [{"seller": "吳文琥", "time": "2026/02/03  5:40 PM"}, {"seller": "吳文琥", "time": "2026/02/03  5:38 PM"}], "黃斌蔚|T181鈦細半框眼鏡": [{"seller": "吳文琥", "time": "2026/02/03  5:38 PM"}, {"seller": "吳文琥", "time": "2026/02/03  5:38 PM"}], "劉家宏|【加購】法國BBGR單焦鏡片": [{"seller": "夏珮雯", "time": "2026/02/03  3:15 PM"}], "劉家宏|C330": [{"seller": "夏珮雯", "time": "2026/02/03  3:15 PM"}], "張恩慈|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/02  7:45 PM"}], "張恩慈|M007兩用磁吸多邊形眼鏡": [{"seller": "謝采紘", "time": "2026/02/02  7:45 PM"}], "鄭雅云|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/01  5:37 PM"}], "鄭雅云|純鈦鼻墊": [{"seller": "謝采紘", "time": "2026/02/01  5:37 PM"}], "藍德爾|【加購】法國BBGR單焦鏡片": [{"seller": "謝采紘", "time": "2026/02/01  5:15 PM"}], "藍德爾|M004兩用磁吸飛行員眼鏡": [{"seller": "謝采紘", "time": "2026/02/01  5:15 PM"}]}}]};
+
+function loadStorage(){
+  try{
+    // 嘗試所有可能的 key，從新到舊
+    const keys=['mg_v4_cfg','mg_v4','mg_bc'];
+    let d={};
+    for(const key of keys){
+      const raw=localStorage.getItem(key);
+      if(raw){
+        try{
+          const parsed=JSON.parse(raw);
+          // 確認有效資料（至少有 employees 或 templateTiers）
+          if(parsed.employees||parsed.templateTiers){
+            d=parsed; break;
+          }
+        }catch(e){}
+      }
+    }
+
+    // 若本機無資料，使用內嵌備份
+    if((!d.employees||!d.employees.length)&&_EMBEDDED_BACKUP.employees?.length){
+      console.log('載入內嵌備份資料');
+      d=_EMBEDDED_BACKUP;
+    }
+
+    if(d.templateTiers) CFG.templateTiers=d.templateTiers;
+    if(d.teamTiers) CFG.teamTiers=d.teamTiers;
+    if(d.customFields) CFG.customFields=d.customFields;
+    if(d.nextMonthTiers) CFG.nextMonthTiers=d.nextMonthTiers;
+    if(d.employees) CFG.employees=d.employees;
+    if(d.payrollHistory) CFG.payrollHistory=d.payrollHistory;
+    if(d.monthlySalaries) CFG.monthlySalaries=d.monthlySalaries;
+    if(d.monthlyAdj) CFG.monthlyAdj=d.monthlyAdj;
+
+    // 調整資料從獨立 key 讀取（優先，不被 Drive 覆蓋）
+    try{
+      const adjRaw=localStorage.getItem('mg_v4_adj');
+      if(adjRaw) CFG.monthlyAdj=JSON.parse(adjRaw);
+    }catch(e){}
+    if(d.reportArchive) CFG.reportArchive=d.reportArchive;
+
+    // 讀報表庫（獨立 key）
+    const rawArch=localStorage.getItem('mg_v4_arch');
+    if(rawArch){
+      try{
+        const arch=JSON.parse(rawArch);
+        if(Array.isArray(arch)&&arch.length>0) CFG.reportArchive=arch;
+      }catch(e){}
+    }
+
+    CFG.employees.forEach(e=>{
+      if(!e.afterService) e.afterService={};
+      if(!e.adjustments) e.adjustments={leave:0,overtime:0,note:''};
+    });
+
+    // 若讀到資料，立刻用新 key 存一份（避免下次讀不到）
+    if(CFG.employees.length||Object.keys(CFG.templateTiers).length){
+      setTimeout(save,500);
+    }
+
+    console.log(`載入完成：${CFG.employees.length}位員工，${CFG.payrollHistory?.length||0}月封存，${CFG.reportArchive?.length||0}份報表`);
+  }catch(e){console.error('載入設定失敗',e);}
+}
+function renderAll(){renderTemplateTiers();renderTeamTiers();renderEmpList();renderCustomFieldsBar();renderAdjBody();renderArchiveList();updateCalcMonthSel();renderHistoryList();}
+
+/* ══════════════════════════════════════
+   TEMPLATE TIERS
+══════════════════════════════════════ */
+function renderTemplateTiers(){
+  D('templateTiers').innerHTML=BONUS_KEYS.map(bk=>`
+    <div style="margin-bottom:12px;border-bottom:1px solid var(--bd);padding-bottom:12px">
+      <div class="fc g6 mb6">
+        <div style="width:8px;height:8px;border-radius:50%;background:${bk.color}"></div>
+        <strong style="font-size:12px">${bk.label}</strong>
+        <span class="xs muted">（${bk.unit}）</span>
+        <button class="btn bo bsm" onclick="addTplTier('${bk.key}')">＋</button>
+      </div>
+      <div id="tpl_${bk.key}">
+        ${renderTierRows(CFG.templateTiers[bk.key]||[], 'tpl', bk.key)}
+      </div>
+    </div>`).join('');
+}
+
+function renderTierRows(tiers, prefix, key){
+  if(!tiers.length) return `<div class="xs muted" style="padding:2px 0">（尚無階梯）</div>`;
+  return tiers.map((t,i)=>`
+    <div class="tier-row">
+      <div class="tier-num">${i+1}</div>
+      <span class="xs muted">達</span>
+      <input type="number" value="${t.min}" min="0" style="width:58px;font-size:11px"
+        oninput="${prefix==='tpl'?`CFG.templateTiers['${key}']`:`empTierBuf['${key}']`}[${i}].min=+this.value;${prefix==='tpl'?'save()':''}">
+      <span class="xs muted">～</span>
+      <input type="number" value="${t.max??''}" placeholder="以上" style="width:58px;font-size:11px"
+        oninput="${prefix==='tpl'?`CFG.templateTiers['${key}']`:`empTierBuf['${key}']`}[${i}].max=this.value===''?null:+this.value;${prefix==='tpl'?'save()':''}">
+      <span class="xs muted">→</span>
+      <input type="number" value="${t.bonus}" min="0" style="width:72px;font-size:11px"
+        oninput="${prefix==='tpl'?`CFG.templateTiers['${key}']`:`empTierBuf['${key}']`}[${i}].bonus=+this.value;${prefix==='tpl'?'save()':''}">
+      <span class="xs muted">元</span>
+      <button class="bgh" style="padding:1px 4px" onclick="${prefix==='tpl'?`delTplTier('${key}',${i})`:`delEmpTier('${key}',${i})`}">✕</button>
+    </div>`).join('');
+}
+
+function addTplTier(key){
+  if(!CFG.templateTiers[key]) CFG.templateTiers[key]=[];
+  const last=CFG.templateTiers[key].slice(-1)[0];
+  CFG.templateTiers[key].push({min:(last?.max??0)+1,max:null,bonus:0});
+  save(); renderTemplateTiers();
+}
+function delTplTier(key,i){CFG.templateTiers[key].splice(i,1);save();renderTemplateTiers();}
+
+/* ══════════════════════════════════════
+   TEAM TIERS
+══════════════════════════════════════ */
+function renderTeamTiers(){
+  D('team_tiers').innerHTML=CFG.teamTiers.length
+    ?CFG.teamTiers.map((t,i)=>`
+      <div class="tier-row">
+        <span class="xs muted">達</span>
+        <input type="number" value="${t.min}" style="width:85px;font-size:11px"
+          oninput="CFG.teamTiers[${i}].min=+this.value;save()">
+        <span class="xs muted">元 → 每人</span>
+        <input type="number" value="${t.bonus}" style="width:72px;font-size:11px"
+          oninput="CFG.teamTiers[${i}].bonus=+this.value;save()">
+        <span class="xs muted">元</span>
+        <button class="bgh" style="padding:1px 4px" onclick="CFG.teamTiers.splice(${i},1);save();renderTeamTiers()">✕</button>
+      </div>`).join('')
+    :`<div class="xs muted" style="padding:4px 0">尚無門檻</div>`;
+}
+function addTeamTier(){
+  const last=CFG.teamTiers.slice(-1)[0];
+  CFG.teamTiers.push({min:(last?.min??500000)+200000,bonus:0});
+  save();renderTeamTiers();
+}
+function calcTeamBonus(revenue){
+  if(!CFG.teamTiers.length) return 0;
+  const sorted=[...CFG.teamTiers].sort((a,b)=>a.min-b.min);
+  let best=0; for(const t of sorted){if(revenue>=t.min) best=t.bonus;} return best;
+}
+
+/* ══════════════════════════════════════
+   CUSTOM FIELDS
+══════════════════════════════════════ */
+function addCustomField(){
+  const label=prompt('新欄位名稱（例如：交通津貼、伙食津貼）：');
+  if(!label?.trim()) return;
+  const type=confirm(`「${label}」是加項（正數）嗎？\n按確定=加項，按取消=扣項`) ? 'add':'sub';
+  CFG.customFields.push({id:uid(),label:label.trim(),type});
+  save(); renderCustomFieldsBar(); renderEmpList();
+}
+function delCustomField(id){
+  if(!confirm('確定刪除此欄位？已填入的數值也會清除')) return;
+  CFG.customFields=CFG.customFields.filter(f=>f.id!==id);
+  CFG.employees.forEach(e=>{if(e.customValues) delete e.customValues[id];});
+  save(); renderCustomFieldsBar(); renderEmpList();
+}
+function renderCustomFieldsBar(){
+  if(!CFG.customFields.length){D('customFieldsBar').classList.add('hidden');return;}
+  D('customFieldsBar').classList.remove('hidden');
+  D('customFieldsList').innerHTML=CFG.customFields.map(f=>`
+    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--bd2);border-radius:20px;padding:2px 8px;font-size:11px;margin-right:4px;margin-bottom:4px">
+      ${f.type==='add'?'＋':'－'} ${esc(f.label)}
+      <button class="bgh" style="padding:0 2px" onclick="delCustomField('${f.id}')">✕</button>
+    </span>`).join('');
+}
+
+/* ══════════════════════════════════════
+   EMPLOYEES
+══════════════════════════════════════ */
+function defaultBonusRules(){
+  const rules={};
+  BONUS_KEYS.forEach(bk=>{
+    rules[bk.key]={
+      enabled: !['mgr_jz','mgr_frame'].includes(bk.key),
+      tiers: JSON.parse(JSON.stringify(CFG.templateTiers[bk.key]||[]))
+    };
+  });
+  return rules;
+}
+
+function addEmp(){
+  CFG.employees.push({
+    id:uid(), name:'', store:STORES[0], role:ROLES[0],
+    base:0, labor:0, health:0, dependents:0, seasonal:0,
+    customValues:{},
+    bonusRules: defaultBonusRules(),
+    adjustments:{leave:0,overtime:0,note:''}
+  });
+  save(); renderEmpList(); renderAdjBody();
+}
+
+function renderEmpList(){
+  D('empCount').textContent=`共 ${CFG.employees.length} 位`;
+  if(!CFG.employees.length){
+    D('empList').innerHTML=`<div class="xs muted" style="padding:20px;text-align:center">尚無員工，請按「新增員工」</div>`;
+    return;
+  }
+  D('empList').innerHTML=CFG.employees.map(e=>{
+    const hasBonus=Object.values(e.bonusRules||{}).some(r=>r.enabled);
+    const roleColor=ROLE_COLORS[e.role]||'var(--ac)';
+    return`<div class="emp-card" id="ec_${e.id}">
+      <div class="emp-card-hd">
+        <div class="fc g8">
+          <div style="width:30px;height:30px;border-radius:50%;background:${roleColor};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#000;flex-shrink:0">${(e.name||'?').charAt(0)}</div>
+          <div>
+            <div style="font-weight:700">${esc(e.name)||'（未填名稱）'}</div>
+            <div class="xs muted">${esc(e.store)} ｜ ${esc(e.role)}</div>
+          </div>
+        </div>
+        <div class="row-btn">
+          <button class="btn bo bsm" onclick="openMonthlySalary('${e.id}')">
+            💰 ${(CFG.monthlySalaries[e.id]||{})[D('hdrMonth').value]?'<span style="color:var(--ac3)">當月薪資（已設定）</span>':'當月薪資設定'}
+          </button>
+          <button class="btn bo bsm ${hasBonus?'':''}}" style="${hasBonus?'border-color:var(--ac3);color:var(--ac3)':''}" onclick="openEmpBonus('${e.id}')">
+            🎯 獎金規則${hasBonus?'（已設定）':''}
+          </button>
+          <button class="btn bo bsm" onclick="copyEmpTo('${e.id}')">📋 複製規則</button>
+          <button class="bgh" onclick="delEmp('${e.id}')">🗑</button>
+        </div>
+      </div>
+      <!-- 基本薪資欄位 -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px">
+        <div><div class="xs muted mb8">姓名</div>
+          <input value="${esc(e.name)}" placeholder="員工姓名"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').name=this.value;save();document.getElementById('ec_${e.id}').querySelector('div div div').textContent=this.value||'（未填名稱）'"></div>
+        <div><div class="xs muted mb8">門市</div>
+          <select onchange="CFG.employees.find(x=>x.id==='${e.id}').store=this.value;save()">
+            ${STORES.map(s=>`<option ${e.store===s?'selected':''}>${esc(s)}</option>`).join('')}
+          </select></div>
+        <div><div class="xs muted mb8">職位</div>
+          <select onchange="CFG.employees.find(x=>x.id==='${e.id}').role=this.value;save()">
+            ${ROLES.map(r=>`<option ${e.role===r?'selected':''}>${esc(r)}</option>`).join('')}
+          </select></div>
+        <div><div class="xs muted mb8">底薪</div>
+          <input type="number" value="${e.base||0}"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').base=+this.value;save()"></div>
+        <div><div class="xs muted mb8">扶養人數</div>
+          <input type="number" value="${e.dependents||0}" min="0"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').dependents=+this.value;save()"></div>
+        <div><div class="xs muted mb8">勞保（扣）</div>
+          <input type="number" value="${e.labor||0}"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').labor=+this.value;save()"></div>
+        <div><div class="xs muted mb8">健保（扣）</div>
+          <input type="number" value="${e.health||0}"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').health=+this.value;save()"></div>
+        <div><div class="xs muted mb8">季獎金</div>
+          <input type="number" value="${e.seasonal||0}" placeholder="手動填入"
+            oninput="CFG.employees.find(x=>x.id==='${e.id}').seasonal=+this.value;save()"></div>
+        ${CFG.customFields.map(f=>`
+          <div><div class="xs muted mb8">${f.type==='add'?'＋':'－'} ${esc(f.label)}</div>
+            <input type="number" value="${(e.customValues||{})[f.id]||0}"
+              oninput="if(!CFG.employees.find(x=>x.id==='${e.id}').customValues)CFG.employees.find(x=>x.id==='${e.id}').customValues={};CFG.employees.find(x=>x.id==='${e.id}').customValues['${f.id}']=+this.value;save()">
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function delEmp(id){
+  if(!confirm('確定刪除此員工？')) return;
+  CFG.employees=CFG.employees.filter(e=>e.id!==id);
+  save(); renderEmpList(); renderAdjBody();
+}
+
+function getAdj(empId,month){
+  return (CFG.monthlyAdj[month]||{})[empId]||{leave:0,overtime:0,otherDeduct:0,deductNote:'',note:''};
+}
+function setAdj(empId,month,field,value){
+  if(!CFG.monthlyAdj[month]) CFG.monthlyAdj[month]={};
+  if(!CFG.monthlyAdj[month][empId]) CFG.monthlyAdj[month][empId]={};
+  CFG.monthlyAdj[month][empId][field]=value;
+  localStorage.setItem('mg_v4_adj',JSON.stringify(CFG.monthlyAdj));
+}
+function getAfterService(empId,month){
+  return ((CFG.monthlyAdj[month]||{})[empId]||{}).afterService||{};
+}
+function setAfterService(empId,month,key,value){
+  if(!CFG.monthlyAdj[month]) CFG.monthlyAdj[month]={};
+  if(!CFG.monthlyAdj[month][empId]) CFG.monthlyAdj[month][empId]={};
+  if(!CFG.monthlyAdj[month][empId].afterService) CFG.monthlyAdj[month][empId].afterService={};
+  CFG.monthlyAdj[month][empId].afterService[key]=value;
+  localStorage.setItem('mg_v4_adj',JSON.stringify(CFG.monthlyAdj));
+}
+
+function renderAdjBody(){
+  const month=D('hdrMonth').value||'';
+  const AS_KEYS=[
+    {k:'jz',lbl:'晶鑽單焦'},{k:'jzc',lbl:'晶鑽變色'},{k:'bbgr',lbl:'BBGR'},
+    {k:'f1780',lbl:'$1780框'},{k:'f2380',lbl:'$2380框'},{k:'f2780',lbl:'$2780框'},{k:'f3980',lbl:'$3980框'},
+    {k:'sg',lbl:'墨鏡'}
+  ];
+  D('adjBody').innerHTML=CFG.employees.map(e=>{
+    const adj=getAdj(e.id,month);
+    const as=getAfterService(e.id,month);
+    return`<tr>
+      <td><strong>${esc(e.name)||'?'}</strong></td>
+      <td><input type="number" value="${adj.leave||0}" style="width:75px" placeholder="0"
+        oninput="setAdj('${e.id}','${month}','leave',+this.value)"></td>
+      <td><input type="number" value="${adj.overtime||0}" style="width:75px"
+        oninput="setAdj('${e.id}','${month}','overtime',+this.value)"></td>
+      <td><input type="number" value="${adj.otherDeduct||0}" style="width:80px" placeholder="0"
+        oninput="setAdj('${e.id}','${month}','otherDeduct',+this.value)"></td>
+      <td><input value="${esc(adj.deductNote||'')}" placeholder="例：比例扣款" style="width:110px"
+        oninput="setAdj('${e.id}','${month}','deductNote',this.value)"></td>
+      ${AS_KEYS.map(f=>`<td><input type="number" value="${as[f.k]||0}" min="0" style="width:70px" placeholder="0"
+        oninput="setAfterService('${e.id}','${month}','${f.k}',+this.value)"></td>`).join('')}
+      <td><input value="${esc(adj.note||'')}" placeholder="備註" style="width:100px"
+        oninput="setAdj('${e.id}','${month}','note',this.value)"></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   MONTHLY SALARY MODAL
+══════════════════════════════════════ */
+let _msEmpId=null;
+function openMonthlySalary(empId){
+  _msEmpId=empId;
+  const emp=CFG.employees.find(e=>e.id===empId); if(!emp) return;
+  const month=D('hdrMonth').value||'';
+  const[y,m]=(month).split('-');
+  const ms=(CFG.monthlySalaries[empId]||{})[month]||{};
+  D('msSalaryName').textContent=emp.name;
+  D('msSalaryMonth').textContent=`${y}年${parseInt(m)}月`;
+  // 建立表單
+  const fields=[
+    {key:'base',  label:'底薪',     def:emp.base||0},
+    {key:'labor', label:'勞保（扣）', def:emp.labor||0},
+    {key:'health',label:'健保（扣）', def:emp.health||0},
+    {key:'seasonal',label:'季獎金',  def:emp.seasonal||0},
+  ];
+  const customFlds=CFG.customFields.map(f=>({
+    key:'cf_'+f.id, label:(f.type==='add'?'＋ ':'－ ')+f.label,
+    def:Math.abs((emp.customValues||{})[f.id]||0), cfId:f.id
+  }));
+  D('msSalaryContent').innerHTML=`
+    <div class="al aw mb10" style="font-size:11px">
+      未填的欄位留空白，計算時自動沿用員工預設值（預設：底薪 $${fmt(emp.base)}、勞保 $${fmt(emp.labor)}、健保 $${fmt(emp.health)}）
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${[...fields,...customFlds].map(f=>`
+        <div>
+          <div class="xs muted mb8">${f.label}</div>
+          <input type="number" id="ms_${f.key}" value="${ms[f.key]??''}"
+            placeholder="留空=沿用預設 ($${fmt(f.def)})"
+            style="font-size:12px">
+        </div>`).join('')}
+    </div>
+    <div class="xs muted mt10">📌 此設定僅影響 ${y}年${parseInt(m)}月 的計算，不改動員工預設值</div>`;
+  openModal('monthlySalaryModal');
+}
+
+function saveMonthlySalary(){
+  const emp=CFG.employees.find(e=>e.id===_msEmpId); if(!emp) return;
+  const month=D('hdrMonth').value||'';
+  if(!CFG.monthlySalaries[_msEmpId]) CFG.monthlySalaries[_msEmpId]={};
+  const ms={};
+  ['base','labor','health','seasonal'].forEach(k=>{
+    const v=D('ms_'+k)?.value;
+    if(v!==''&&v!=null) ms[k]=+v;
+  });
+  // 自訂欄位
+  const cvMs={};
+  CFG.customFields.forEach(f=>{
+    const v=D('ms_cf_'+f.id)?.value;
+    if(v!==''&&v!=null) cvMs[f.id]=+v;
+  });
+  if(Object.keys(cvMs).length) ms.customValues=cvMs;
+  CFG.monthlySalaries[_msEmpId][month]=ms;
+  save(); renderEmpList();
+  closeModal('monthlySalaryModal');
+  const[y,m]=month.split('-');
+  alert(`✅ ${y}年${parseInt(m)}月 ${emp.name} 薪資設定已儲存`);
+}
+
+function deleteMonthlySalary(){
+  const month=D('hdrMonth').value||'';
+  if(CFG.monthlySalaries[_msEmpId]?.[month]){
+    delete CFG.monthlySalaries[_msEmpId][month];
+    save(); renderEmpList();
+  }
+  closeModal('monthlySalaryModal');
+}
+let empTierBuf={};
+function openEmpBonus(empId){
+  _editEmpId=empId;
+  const emp=CFG.employees.find(e=>e.id===empId);
+  if(!emp) return;
+  D('empBonusName').textContent=emp.name||'（未填名稱）';
+  // 深複製規則到 buffer
+  empTierBuf={};
+  BONUS_KEYS.forEach(bk=>{
+    const r=emp.bonusRules?.[bk.key]||{enabled:false,tiers:[]};
+    empTierBuf[bk.key]=JSON.parse(JSON.stringify(r.tiers||[]));
+  });
+  renderEmpBonusContent(emp);
+  openModal('empBonusModal');
+}
+
+function renderEmpBonusContent(emp){
+  D('empBonusContent').innerHTML=BONUS_KEYS.map(bk=>{
+    const r=emp.bonusRules?.[bk.key]||{enabled:false,tiers:[]};
+    const tiers=empTierBuf[bk.key]||[];
+    return`<div style="margin-bottom:14px;border:1px solid var(--bd);border-radius:var(--r);padding:10px;border-left:3px solid ${bk.color}">
+      <div class="fc g8 mb8">
+        <input type="checkbox" id="ebk_${bk.key}" ${r.enabled?'checked':''} style="width:auto">
+        <label for="ebk_${bk.key}" style="font-weight:700;font-size:12px;cursor:pointer;color:${r.enabled?'var(--tx)':'var(--t3)'}">${bk.label}</label>
+        <span class="xs muted">（${bk.unit}）</span>
+        <button class="btn bo bsm" onclick="addEmpTier('${bk.key}')">＋階梯</button>
+      </div>
+      <div id="ebt_${bk.key}">
+        ${renderTierRows(tiers,'emp',bk.key)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addEmpTier(key){
+  const last=empTierBuf[key]?.slice(-1)[0];
+  if(!empTierBuf[key]) empTierBuf[key]=[];
+  empTierBuf[key].push({min:(last?.max??0)+1,max:null,bonus:0});
+  const emp=CFG.employees.find(e=>e.id===_editEmpId);
+  if(emp) renderEmpBonusContent(emp);
+}
+function delEmpTier(key,i){
+  empTierBuf[key].splice(i,1);
+  const emp=CFG.employees.find(e=>e.id===_editEmpId);
+  if(emp) renderEmpBonusContent(emp);
+}
+
+function saveEmpBonus(){
+  const emp=CFG.employees.find(e=>e.id===_editEmpId);
+  if(!emp) return;
+  if(!emp.bonusRules) emp.bonusRules={};
+  BONUS_KEYS.forEach(bk=>{
+    emp.bonusRules[bk.key]={
+      enabled: D('ebk_'+bk.key)?.checked||false,
+      tiers: JSON.parse(JSON.stringify(empTierBuf[bk.key]||[]))
+    };
+  });
+  save(); renderEmpList(); closeModal('empBonusModal');
+}
+
+function copyBonusFrom(){
+  const others=CFG.employees.filter(e=>e.id!==_editEmpId);
+  if(!others.length){alert('沒有其他員工可複製');return;}
+  D('copyList').innerHTML=others.map(e=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:600">${esc(e.name)||'?'}</span>
+      <button class="btn bo bsm" onclick="doCopy('${e.id}')">複製此人規則</button>
+    </div>`).join('');
+  openModal('copyModal');
+}
+function doCopy(fromId){
+  const src=CFG.employees.find(e=>e.id===fromId);
+  if(!src) return;
+  BONUS_KEYS.forEach(bk=>{
+    empTierBuf[bk.key]=JSON.parse(JSON.stringify(src.bonusRules?.[bk.key]?.tiers||[]));
+  });
+  const emp=CFG.employees.find(e=>e.id===_editEmpId);
+  // 同步 enabled 狀態
+  if(emp){
+    BONUS_KEYS.forEach(bk=>{
+      if(!emp.bonusRules) emp.bonusRules={};
+      emp.bonusRules[bk.key]={enabled:src.bonusRules?.[bk.key]?.enabled||false,tiers:JSON.parse(JSON.stringify(empTierBuf[bk.key]))};
+    });
+    renderEmpBonusContent(emp);
+  }
+  closeModal('copyModal');
+}
+function copyEmpTo(empId){
+  const src=CFG.employees.find(e=>e.id===empId);
+  if(!src) return;
+  const others=CFG.employees.filter(e=>e.id!==empId&&e.name);
+  if(!others.length){alert('沒有其他員工');return;}
+  const names=others.map(e=>e.name).join('、');
+  const target=prompt(`要將「${src.name}」的獎金規則複製給誰？\n可用員工：${names}`);
+  if(!target) return;
+  const dest=CFG.employees.find(e=>e.name===target);
+  if(!dest){alert('找不到此員工');return;}
+  dest.bonusRules=JSON.parse(JSON.stringify(src.bonusRules||{}));
+  save(); renderEmpList();
+  alert(`✅ 已複製「${src.name}」的規則給「${dest.name}」`);
+}
+
+/* ══════════════════════════════════════
+   FILE UPLOAD
+══════════════════════════════════════ */
+let RAW_CUR=[];
+let RAW_PREV=[];
+const RAW_STORE={}; // month → rows（記憶體快取）
+
+/* ══════════════════════════════════════
+   INDEXED DB - 存完整報表 rows
+══════════════════════════════════════ */
+let _db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(_db){res(_db);return;}
+    const req=indexedDB.open('mg_reports',1);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('reports'))
+        db.createObjectStore('reports',{keyPath:'month'});
+    };
+    req.onsuccess=e=>{_db=e.target.result;res(_db);};
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function saveRows(month,rows){
+  try{
+    const db=await openDB();
+    return new Promise((res,rej)=>{
+      const tx=db.transaction('reports','readwrite');
+      tx.objectStore('reports').put({month,rows});
+      tx.oncomplete=()=>res(true);
+      tx.onerror=()=>rej(tx.error);
+    });
+  }catch(e){console.error('IndexedDB 儲存失敗',e);return false;}
+}
+async function loadRows(month){
+  // 先查記憶體快取
+  if(RAW_STORE[month]) return RAW_STORE[month];
+  try{
+    const db=await openDB();
+    return new Promise((res)=>{
+      const tx=db.transaction('reports','readonly');
+      const req=tx.objectStore('reports').get(month);
+      req.onsuccess=()=>{
+        const rows=req.result?.rows||null;
+        if(rows) RAW_STORE[month]=rows;
+        res(rows);
+      };
+      req.onerror=()=>res(null);
+    });
+  }catch(e){return null;}
+}
+async function deleteRows(month){
+  delete RAW_STORE[month];
+  try{
+    const db=await openDB();
+    return new Promise((res)=>{
+      const tx=db.transaction('reports','readwrite');
+      tx.objectStore('reports').delete(month);
+      tx.oncomplete=()=>res(true);
+      tx.onerror=()=>res(false);
+    });
+  }catch(e){return false;}
+}
+
+function setupDrag(){
+  const z=D('upZone');
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag')});
+  z.addEventListener('dragleave',()=>z.classList.remove('drag'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)processFile(f,'cur')});
+}
+function handleFile(e,which){const f=e.target.files[0];if(f)processFile(f,which);}
+
+function processFile(file,which){
+  const ext=file.name.split('.').pop().toLowerCase();
+  setMsg('upMsg','🔄 讀取中…','ai');
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      let rows;
+      if(ext==='csv') rows=parseCSV(ev.target.result);
+      else{const wb=XLSX.read(ev.target.result,{type:'binary'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});}
+
+      RAW_CUR=rows;
+
+      // 自動偵測月份
+      const hdrs=rows[0]?.map(h=>String(h).trim())||[];
+      const iTT=hdrs.indexOf('交易時間'),iSt=hdrs.indexOf('狀態');
+      let detMonth='';
+      if(iTT>=0&&iSt>=0){
+        const s=rows.slice(1).find(r=>['付清','已付款（尾款）','已付款（預訂）'].includes(String(r[iSt]||'').trim())&&r[iTT]);
+        if(s){const t=parseExcelDateGlobal(String(s[iTT]));const m=t.match(/^(\d{4})\/(\d{1,2})\//);if(m) detMonth=`${m[1]}-${String(parseInt(m[2])).padStart(2,'0')}`;}
+      }
+
+      // 建立此報表的 preorderMap（雙重索引）
+      const iStatus=hdrs.indexOf('狀態'),iTxId=hdrs.indexOf('交易號碼'),
+            iSeller=hdrs.indexOf('銷售員'),iCustH=hdrs.indexOf('顧客'),
+            iProdH=hdrs.indexOf('商品'),iTTimeH=hdrs.indexOf('交易時間'),
+            iQtyH=hdrs.indexOf('銷售數量');
+      const preorderMap={};
+      const custProdMap={};
+      rows.slice(1).forEach(row=>{
+        if(String(row[iStatus]||'').trim()==='已付款（預訂）'){
+          const txId=String(row[iTxId]||'').trim();
+          const seller=String(row[iSeller]||'').trim();
+          const cust=iCustH>=0?String(row[iCustH]||'').trim():'';
+          const prod=iProdH>=0?String(row[iProdH]||'').trim():'';
+          const t=iTTimeH>=0?String(row[iTTimeH]||'').trim():'';
+          const qty=iQtyH>=0?parseFloat(String(row[iQtyH]||'1').replace(',',''))||1:1;
+          if(txId) preorderMap[txId]=seller;
+          if(cust&&prod){
+            const key=`${cust}|${prod}`;
+            if(!custProdMap[key]) custProdMap[key]=[];
+            custProdMap[key].push({seller,time:t,qty});
+          }
+        }
+      });
+
+      // 加入或更新檔案庫
+      if(!CFG.reportArchive) CFG.reportArchive=[];
+      const existIdx=CFG.reportArchive.findIndex(a=>a.month===detMonth);
+      const archiveEntry={
+        name: file.name,
+        month: detMonth,
+        uploadedAt: new Date().toLocaleDateString('zh-TW'),
+        rowCount: rows.length-1,
+        preorderMap,
+        custProdMap   // 跨月用顧客+商品對應
+      };
+      if(existIdx>=0) CFG.reportArchive[existIdx]=archiveEntry;
+      else CFG.reportArchive.push(archiveEntry);
+      // 同時把 rows 存在記憶體 map 和 IndexedDB（持久化）
+      RAW_STORE[detMonth]=rows;
+      RAW_CUR=rows;
+      saveRows(detMonth,rows).then(ok=>{
+        if(!ok) console.warn('IndexedDB 儲存失敗，此次 session 仍可計算');
+      });
+      CFG.reportArchive.sort((a,b)=>b.month.localeCompare(a.month));
+      if(CFG.reportArchive.length>24) CFG.reportArchive=CFG.reportArchive.slice(0,24);
+      save();
+
+      let msg=`✅ 已加入檔案庫：${file.name}　${rows.length-1} 列`;
+      if(detMonth){
+        const[y,m]=detMonth.split('-');
+        msg+=`　（${y}年${parseInt(m)}月）`;
+        // 更新計算月份選單預設為此月，但不改 hdrMonth（避免調整資料讀錯）
+        updateCalcMonthSel();
+        const sel=D('calcMonthSel');
+        if(sel) sel.value=detMonth;
+      }
+      setMsg('upMsg',msg,'aok');
+      showPreview(rows);
+      renderArchiveList();
+    }catch(e){setMsg('upMsg','❌ '+e.message,'ae');}
+  };
+  if(ext==='csv') r.readAsText(file,'UTF-8'); else r.readAsBinaryString(file);
+}
+
+function renderArchiveList(){
+  const arch=CFG.reportArchive||[];
+  D('archiveCount').textContent=`共 ${arch.length} 份`;
+  if(!arch.length){
+    D('archiveList').innerHTML='<div class="xs muted" style="padding:8px 0">尚無報表，請上傳</div>';
+    return;
+  }
+  D('archiveList').innerHTML=arch.map((a,i)=>{
+    const[y,m]=(a.month||'').split('-');
+    const preCount=Object.keys(a.preorderMap||{}).length;
+    const custCount=Object.keys(a.custProdMap||{}).length;
+    const inMem=!!RAW_STORE[a.month];
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)">
+      <div>
+        <div style="font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px">
+          ${y||'?'}年${parseInt(m)||'?'}月
+          <span class="badge ${inMem?'bg3':'bo2'}">${inMem?'✓ 可計算':'需重新上傳 Excel'}</span>
+          <span class="xs muted">${esc(a.name)}</span>
+        </div>
+        <div class="xs muted">${a.rowCount} 列　預訂 ${preCount} 筆　顧客對應 ${custCount} 筆　${a.uploadedAt}</div>
+      </div>
+      <button class="bgh" onclick="delArchive(${i})" title="刪除">🗑</button>
+    </div>`;
+  }).join('');
+  // 非同步更新 IndexedDB 狀態標示
+  arch.forEach(async (a,i)=>{
+    const rows=await loadRows(a.month);
+    if(rows&&!RAW_STORE[a.month]){
+      RAW_STORE[a.month]=rows;
+      renderArchiveList(); // 重繪更新狀態
+    }
+  });
+}
+
+async function delArchive(i){
+  const a=CFG.reportArchive[i];
+  if(!confirm(`確定刪除「${a?.name}」？`)) return;
+  await deleteRows(a?.month);
+  CFG.reportArchive.splice(i,1);
+  save(); renderArchiveList(); updateCalcMonthSel();
+}
+
+function updateCalcMonthSel(){
+  const sel=D('calcMonthSel');
+  if(!sel) return;
+  const arch=CFG.reportArchive||[];
+  if(!arch.length){sel.innerHTML='<option value="">請先上傳報表</option>';return;}
+  // 去重（同月份只保留一筆）
+  const seen=new Set();
+  const unique=arch.filter(a=>{
+    if(!a.month||seen.has(a.month)) return false;
+    seen.add(a.month); return true;
+  });
+  sel.innerHTML=unique.map(a=>{
+    const[y,m]=(a.month||'').split('-');
+    const inMem=!!RAW_STORE[a.month];
+    return`<option value="${a.month}">${y}年${parseInt(m)}月　（${a.name}）${inMem?'✓':'⚠需上傳'}</option>`;
+  }).join('');
+  if(unique.length) sel.value=unique[0].month;
+}
+// 全域日期解析（給 processFile 和 parseReport 都用）
+function parseExcelDateGlobal(val){
+  if(!val) return '';
+  const s=String(val).trim();
+  if(s.includes('/')) return s;
+  const n=parseFloat(s);
+  if(!isNaN(n)&&n>40000&&n<60000){
+    const d=new Date((n-25569)*86400*1000);
+    return `${d.getUTCFullYear()}/${d.getUTCMonth()+1}/${d.getUTCDate()}`;
+  }
+  return s;
+}
+function parseCSV(txt){
+  return txt.split(/\r?\n/).filter(l=>l.trim()).map(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(const c of line){if(c==='"') inQ=!inQ;else if(c===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=c;}
+    cols.push(cur.trim());return cols;
+  });
+}
+function setMsg(id,txt,cls){const el=D(id);if(!el)return;el.className='al '+cls+' mt8';el.textContent=txt;el.classList.remove('hidden');}
+function showPreview(rows){
+  D('prevEmpty').classList.add('hidden');
+  const p=rows.slice(0,8);
+  D('prevInfo').textContent=`前 ${Math.min(7,rows.length-1)} 列`;
+  D('prevTbl').innerHTML=`<div class="tw"><table><thead><tr>${(p[0]||[]).map(c=>`<th>${esc(String(c))}</th>`).join('')}</tr></thead><tbody>${p.slice(1).map(r=>`<tr>${r.map(c=>`<td style="white-space:nowrap">${esc(String(c))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  D('prevTbl').classList.remove('hidden');
+}
+
+/* ══════════════════════════════════════
+   PARSE & CALCULATE
+══════════════════════════════════════ */
+async function parseReport(){
+  const arch=CFG.reportArchive||[];
+  if(!arch.length){alert('請先上傳報表');return;}
+  const sel=D('calcMonthSel');
+  const selMonth=sel?.value||arch[0]?.month||'';
+  console.log('計算月份：',selMonth,'選單值：',sel?.value,'archive：',arch.map(a=>a.month));
+  if(!selMonth){alert('請選擇計算月份\n\n目前選單值為空，請重新整理頁面後再試');return;}
+
+  // 從記憶體或 IndexedDB 取 rows
+  D('parseBtn').textContent='⏳ 載入資料中…';
+  D('parseBtn').disabled=true;
+
+  // 先試記憶體，再試 IndexedDB
+  let curRows=RAW_STORE[selMonth];
+  if(!curRows||curRows.length<2){
+    curRows=await loadRows(selMonth);
+  }
+
+  D('parseBtn').textContent='⚡ 解析並計算薪資單';
+  D('parseBtn').disabled=false;
+
+  if(!curRows||curRows.length<2){
+    alert(`找不到「${selMonth}」的報表資料。\n\n請到「📂 上傳報表」重新上傳該月份的 Excel 檔案。`);
+    go('import');
+    return;
+  }
+
+  D('hdrMonth').value=selMonth;
+  renderAdjBody(); // 重新渲染調整表格為計算月份
+  const curMonth=selMonth;
+  const hdrs2=curRows[0].map(h=>String(h).trim());
+  const rows=curRows.slice(1);
+  const col=n=>hdrs2.indexOf(n);
+  const iStatus=col('狀態'),iProd=col('商品'),iSpec=col('規格'),iQty=col('銷售數量'),
+        iPrice=col('商品單價'),iSeller=col('銷售員'),iDisc=col('整單折扣金額'),
+        iTxId=col('交易號碼'),iTxTime2=col('交易時間'),iOrderAmt=col('訂單金額'),
+        iStoreCol=col('分店'),iCust=col('顧客');
+  if(iStatus<0||iProd<0||iSeller<0){alert('找不到必要欄位，請確認報表格式');return;}
+
+  function inMonth(t){
+    if(!curMonth) return true;
+    const s=parseExcelDateGlobal(t);
+    if(!s) return true;
+    const[y,m]=curMonth.split('-');
+    const mi=parseInt(m);
+    return s.startsWith(y+'/'+mi+'/')||s.startsWith(y+'/'+String(mi).padStart(2,'0')+'/');
+  }
+
+  const validRows=rows.filter(r=>VALID_STATUS.includes(String(r[iStatus]||'').trim()));
+  // 依時間排序（確保尾款配對邏輯正確）
+  validRows.sort((a,b)=>String(a[iTxTime2]||'').localeCompare(String(b[iTxTime2]||'')));
+
+  // 合併所有檔案庫的預訂資料，建立數量池
+  const preorderSeller={};
+  const custProdPool={};  // key -> [{seller,time,remaining}]
+  const sortedArch=[...arch].sort((a,b)=>a.month.localeCompare(b.month));
+  sortedArch.forEach(a=>{
+    Object.entries(a.preorderMap||{}).forEach(([txId,seller])=>{
+      if(!preorderSeller[txId]) preorderSeller[txId]=seller;
+    });
+    Object.entries(a.custProdMap||{}).forEach(([key,entries])=>{
+      if(!custProdPool[key]) custProdPool[key]=[];
+      entries.forEach(e=>custProdPool[key].push({seller:e.seller,time:e.time,remaining:e.qty||1}));
+    });
+  });
+  // 本月 rows 的預訂加入池（含數量）
+  rows.forEach(r=>{
+    if(String(r[iStatus]||'').trim()!=='已付款（預訂）') return;
+    const cust=iCust>=0?String(r[iCust]||'').trim():'';
+    const prod=String(r[iProd]||'').trim();
+    const seller=String(r[iSeller]||'').trim();
+    const t=String(r[iTxTime2]||'').trim();
+    const qty=parseFloat(String(r[iQty]||'1').replace(',',''))||1;
+    if(!cust||!prod) return;
+    const key=`${cust}|${prod}`;
+    if(!custProdPool[key]) custProdPool[key]=[];
+    custProdPool[key].push({seller,time:t,remaining:qty});
+  });
+
+  function getSeller(r){
+    const st=String(r[iStatus]||'').trim();
+    if(st!=='已付款（尾款）') return String(r[iSeller]||'').trim();
+    const cust=iCust>=0?String(r[iCust]||'').trim():'';
+    const prod=String(r[iProd]||'').trim();
+    const tailTime=String(r[iTxTime2]||'').trim();
+    const tailQty=parseFloat(String(r[iQty]||'1').replace(',',''))||1;
+    const txId=String(r[iTxId]||'').trim();
+    if(cust&&prod){
+      const key=`${cust}|${prod}`;
+      const candidates=(custProdPool[key]||[])
+        .filter(p=>p.time<tailTime&&p.remaining>0)
+        .sort((a,b)=>b.time.localeCompare(a.time));
+      if(candidates.length){
+        const best=candidates[0];
+        best.remaining=Math.max(0,best.remaining-tailQty);
+        return best.seller;
+      }
+    }
+    if(preorderSeller[txId]) return preorderSeller[txId];
+    return String(r[iSeller]||'').trim();
+  }
+
+  // 預先計算所有 row 的歸屬 seller（用 row 物件本身當 key，避免 index 對不上）
+  const sellerMap=new Map();
+  validRows.forEach(r=>{
+    if(inMonth(r[iTxTime2])) sellerMap.set(r,getSeller(r));
+  });
+  // 診斷 log
+  let _qjz=0,_zjz=0;
+  validRows.forEach(r=>{
+    if(!inMonth(r[iTxTime2])) return;
+    if(String(r[iProd]||'').trim()!=='【加購】台灣晶鑽單焦鏡片') return;
+    const seller=sellerMap.get(r)||'';
+    const spec=String(r[iSpec]||'').trim();
+    const qty=parseFloat(String(r[iQty]||'1').replace(/[^0-9.-]/g,''))||1;
+    const disc=String(r[iDisc]||'');
+    let pts=0;
+    if(JZ_FULL.includes(spec)) pts=disc.includes('一片')?0.5:1;
+    else if(JZ_HALF.includes(spec)) pts=0.5;
+    if(seller==='邱柏豪') _qjz+=pts*qty;
+    if(seller==='鍾郁琇') _zjz+=pts*qty;
+  });
+  console.log('【診斷】邱柏豪晶鑽:',_qjz,'鍾郁琇晶鑽:',_zjz);
+  const _yuKey='余小姐|【加購】台灣晶鑽單焦鏡片';
+  console.log('【余小姐池】',JSON.stringify(custProdPool[_yuKey]||[]));
+  const _archMonths=(arch||[]).map(a=>a.month+' custProd keys:'+Object.keys(a.custProdMap||{}).length);
+  console.log('【archive】',_archMonths);
+
+  // 全店業績
+  const txRevSeen=new Set(); let totalRevenue=0;
+  validRows.forEach(r=>{
+    if(!inMonth(r[iTxTime2])) return;
+    const txId=String(r[iTxId]||'').trim();
+    if(!txRevSeen.has(txId)){txRevSeen.add(txId);totalRevenue+=parseFloat(String(r[iOrderAmt]||'0').replace(/[^0-9.-]/g,''))||0;}
+  });
+
+  // 統計每人每品類
+  const stats={};
+  function getStat(name){
+    if(!stats[name]) stats[name]={jz:0,jzc:0,bbgr:0,sg:0,f1780:0,f2380:0,f2780:0,f3980:0,revenue:0,orderCount:0,txSet:new Set()};
+    return stats[name];
+  }
+  const stTotal={jz:0,jzc:0,bbgr:0,sg:0,f1780:0,f2380:0,f2780:0,f3980:0};
+  const storeTotal={};
+  function getStoreTotal(storeName){
+    if(!storeTotal[storeName]) storeTotal[storeName]={jz:0,jzc:0,bbgr:0,sg:0,f1780:0,f2380:0,f2780:0,f3980:0};
+    return storeTotal[storeName];
+  }
+
+  validRows.forEach((r,idx)=>{
+    if(!inMonth(r[iTxTime2])) return;
+    const prod=String(r[iProd]||'').trim();
+    const spec=String(r[iSpec]||'').trim();
+    const qty=parseFloat(String(r[iQty]||'1').replace(/[^0-9.-]/g,''))||1;
+    const price=parseFloat(String(r[iPrice]||'0').replace(/[^0-9.-]/g,''))||0;
+    const disc=String(r[iDisc]||'');
+    const seller=sellerMap.get(r)||String(r[iSeller]||'').trim();
+    const txId=String(r[iTxId]||'').trim();
+    const orderAmt=parseFloat(String(r[iOrderAmt]||'0').replace(/[^0-9.-]/g,''))||0;
+    // 分店（從報表讀取，用於門市加總）
+    const rowStore=iStoreCol>=0?String(r[iStoreCol]||'').trim():'';
+    const st=getStat(seller);
+    const stt=rowStore?getStoreTotal(rowStore):null;
+    if(!st.txSet.has(txId)){st.txSet.add(txId);st.revenue+=orderAmt;st.orderCount++;}
+    const halfByNote=disc.includes('一片');
+
+    let jzPts=0,jzcPts=0,bbgrPts=0,sgQty=0,frameKey='';
+    if(prod==='【加購】台灣晶鑽單焦鏡片'){
+      if(JZ_FULL.includes(spec)) jzPts=halfByNote?0.5:1;
+      else if(JZ_HALF.includes(spec)) jzPts=0.5;
+      st.jz+=jzPts*qty; stTotal.jz+=jzPts*qty;
+      if(stt) stt.jz+=jzPts*qty;
+    } else if(prod==='【加購】台灣晶鑽變色藍光鏡片'||prod==='【加購】台廠晶鑽變色藍光鏡片'){
+      if(JZC_FULL.includes(spec)) jzcPts=halfByNote?0.5:1;
+      else if(JZC_HALF.includes(spec)) jzcPts=0.5;
+      st.jzc+=jzcPts*qty; stTotal.jzc+=jzcPts*qty;
+      if(stt) stt.jzc+=jzcPts*qty;
+    } else if(BBGR_PRODS.includes(prod)){
+      bbgrPts=halfByNote?0.5:1;
+      st.bbgr+=bbgrPts*qty; stTotal.bbgr+=bbgrPts*qty;
+      if(stt) stt.bbgr+=bbgrPts*qty;
+    } else if(/^B\d/.test(prod)){
+      st.sg+=qty; stTotal.sg+=qty;
+      if(stt) stt.sg+=qty;
+    } else if(FRAME_PRICES.includes(price)&&!prod.startsWith('【')&&!prod.startsWith('補')&&!/^B\d/.test(prod)&&!prod.includes('純鈦鼻墊')&&!prod.includes('單購')){
+      const fk=`f${price}`;
+      st[fk]+=qty; stTotal[fk]+=qty;
+      if(stt) stt[fk]+=qty;
+    }
+  });
+
+  // 套用售後手動扣減（需在 storeKeyMap 前先建立臨時對應）
+  CFG.employees.forEach(emp=>{
+    const as=getAfterService(emp.id,curMonth);
+    const st=stats[emp.name];
+    if(!st) return;
+    const tmpKey=Object.keys(storeTotal).find(k=>k===emp.store||k.includes(emp.store)||emp.store.includes(k))||emp.store;
+    const stt=storeTotal[tmpKey];
+    ['jz','jzc','bbgr','sg','f1780','f2380','f2780','f3980'].forEach(k=>{
+      if(as[k]){
+        st[k]=Math.max(0,st[k]-(as[k]||0));
+        stTotal[k]=Math.max(0,stTotal[k]-(as[k]||0));
+        if(stt) stt[k]=Math.max(0,stt[k]-(as[k]||0));
+      }
+    });
+  });
+
+  const stFrames=stTotal.f1780+stTotal.f2380+stTotal.f2780+stTotal.f3980;
+  const stJzAll=stTotal.jz+stTotal.jzc;
+  const teamBonus=calcTeamBonus(totalRevenue);
+  const nmKey=curMonth;
+
+  // ── 統計每位員工的未結清預訂 & 當月/跨月尾款顧客名稱 ──
+  const pendingOrders={};
+  CFG.employees.forEach(e=>{pendingOrders[e.name]={pending:[],crossMonth:[],sameMonth:[]};});
+
+  // 未結清預訂（本月預訂但沒有對應尾款）
+  rows.forEach(r=>{
+    if(String(r[iStatus]||'').trim()!=='已付款（預訂）') return;
+    const seller=String(r[iSeller]||'').trim();
+    const cust=iCust>=0?String(r[iCust]||'').trim():'';
+    const prod=String(r[iProd]||'').trim();
+    const t=String(r[iTxTime2]||'').trim();
+    if(!inMonth(t)||!cust||!pendingOrders[seller]) return;
+    const hasTail=rows.some(r2=>{
+      if(String(r2[iStatus]||'').trim()!=='已付款（尾款）') return false;
+      const c2=iCust>=0?String(r2[iCust]||'').trim():'';
+      const p2=String(r2[iProd]||'').trim();
+      return c2===cust&&p2===prod;
+    });
+    if(!hasTail&&!pendingOrders[seller].pending.includes(cust)){
+      pendingOrders[seller].pending.push(cust);
+    }
+  });
+
+  // 尾款：分辨當月預訂結清 vs 跨月預訂結清
+  validRows.forEach((r,idx)=>{
+    if(String(r[iStatus]||'').trim()!=='已付款（尾款）') return;
+    const origSeller=String(r[iSeller]||'').trim();
+    const effSeller=sellerMap.get(r)||origSeller;
+    const cust=iCust>=0?String(r[iCust]||'').trim():'';
+    if(!cust||effSeller===origSeller) return;
+    const prod=String(r[iProd]||'').trim();
+    const key=`${cust}|${prod}`;
+    const preEntry=(custProdPool[key]||[]).find(p=>p.seller===effSeller);
+    const isSameMonth=preEntry&&inMonth(preEntry.time);
+    if(pendingOrders[effSeller]){
+      if(isSameMonth){
+        if(!pendingOrders[effSeller].sameMonth.includes(cust))
+          pendingOrders[effSeller].sameMonth.push(cust);
+      }else{
+        if(!pendingOrders[effSeller].crossMonth.includes(cust))
+          pendingOrders[effSeller].crossMonth.push(cust);
+      }
+    }
+  });
+
+  window._pendingOrders=pendingOrders;
+
+  // 除錯 log
+  console.log('【解析完成】月份:',curMonth,'有效筆數:',validRows.length,'業績:',totalRevenue);
+  console.log('各門市合計:', storeTotal);
+  D('debugOut').textContent=`解析完成 ✅  月份：${curMonth}  有效筆數：${validRows.length}\n全店業績：$${Math.round(totalRevenue).toLocaleString()}\n\n【報表銷售員列表】\n${[...new Set(validRows.map(r=>String(r[iSeller]||'').trim()))].filter(Boolean).sort().join('、')}\n\n【員工設定姓名 vs 報表銷售員比對】\n`+CFG.employees.map(e=>{
+    const s=stats[e.name]||{};
+    const hasData=(s.jz||s.jzc||s.f1780||s.f2380||s.f2780||s.f3980||s.sg)>0;
+    const mappedStoreKey=Object.keys(storeTotal).find(k=>k===e.store||k.includes(e.store)||e.store.includes(k))||'❌無法對應';
+    const storeTot=storeTotal[mappedStoreKey]||{};
+    return`  ${hasData?'✅':'❌'} ${e.name}（${e.store}→${mappedStoreKey}）晶鑽:${(s.jz||0).toFixed(1)} 門市晶鑽:${((storeTot.jz||0)+(storeTot.jzc||0)).toFixed(1)}`;
+  }).join('\n');
+  D('debugOut').classList.remove('hidden');
+
+  function getTiers(emp,key){
+    // 優先：當月的員工個人下月目標設定
+    const empTarget=CFG.nextMonthTiers[nmKey]?._empTargets?.[emp.id]?.[key];
+    if(empTarget&&empTarget.length) return empTarget;
+    // 其次：個人規則
+    return emp.bonusRules?.[key]?.tiers||[];
+  }
+  function tierBonus(tiers,qty){
+    if(!tiers.length||qty<=0) return 0;
+    const s=[...tiers].sort((a,b)=>a.min-b.min);
+    let best=0; for(const t of s){if(qty>=t.min) best=t.bonus;} return best;
+  }
+
+  // 建立員工門市 → storeTotal key 的對應（模糊比對，避免名稱細微差異）
+  const storeKeyMap={};
+  const storeTotalKeys=Object.keys(storeTotal);
+  CFG.employees.forEach(emp=>{
+    if(!emp.store||storeKeyMap[emp.store]) return;
+    if(storeTotal[emp.store]){storeKeyMap[emp.store]=emp.store;return;}
+    const match=storeTotalKeys.find(k=>k.includes(emp.store)||emp.store.includes(k));
+    if(match) storeKeyMap[emp.store]=match;
+  });
+
+  // 取得員工當月薪資設定（優先月份設定，否則用預設值）
+  function getEmpSalary(emp){
+    const ms=(CFG.monthlySalaries[emp.id]||{})[curMonth];
+    return{
+      base:    ms?.base    ??emp.base    ??0,
+      labor:   ms?.labor   ??emp.labor   ??0,
+      health:  ms?.health  ??emp.health  ??0,
+      seasonal:ms?.seasonal??emp.seasonal??0,
+      customValues:ms?.customValues??emp.customValues??{}
+    };
+  }
+
+  const results=CFG.employees.map(emp=>{
+    const st=stats[emp.name]||{jz:0,jzc:0,bbgr:0,sg:0,f1780:0,f2380:0,f2780:0,f3980:0,revenue:0,orderCount:0};
+    const br=emp.bonusRules||{};
+    const adj=getAdj(emp.id,curMonth);
+    const sal=getEmpSalary(emp);
+
+    const bonuses={};
+    BONUS_KEYS.forEach(bk=>{
+      const rule=br[bk.key]||{enabled:false,tiers:[]};
+      if(!rule.enabled){bonuses[bk.key]=0;return;}
+      let qty=0;
+      // 店長全店加給：用模糊比對後的門市 key
+      const mappedStoreKey=storeKeyMap[emp.store]||emp.store;
+      const empStoreTot=storeTotal[mappedStoreKey]||{};
+      if(bk.key==='jz') qty=st.jz;
+      else if(bk.key==='jzc') qty=st.jzc;
+      else if(bk.key==='bbgr') qty=st.bbgr;
+      else if(bk.key==='sg') qty=st.sg;
+      else if(bk.key==='f1780') qty=st.f1780;
+      else if(bk.key==='f2380') qty=st.f2380;
+      else if(bk.key==='f2780') qty=st.f2780;
+      else if(bk.key==='f3980') qty=st.f3980;
+      else if(bk.key==='mgr_jz'){
+        // 該門市的晶鑽單焦（不含變色藍光）
+        qty=(empStoreTot.jz||0);
+      }
+      else if(bk.key==='mgr_frame'){
+        // 該門市的鏡框合計（四個價位加總）
+        qty=(empStoreTot.f1780||0)+(empStoreTot.f2380||0)+(empStoreTot.f2780||0)+(empStoreTot.f3980||0);
+      }
+      bonuses[bk.key]=tierBonus(getTiers(emp,bk.key),qty);
+    });
+
+    const achieveBonus=Object.values(bonuses).reduce((s,v)=>s+v,0);
+    const customAdd=CFG.customFields.filter(f=>f.type==='add').reduce((s,f)=>s+Math.abs((sal.customValues||{})[f.id]||0),0);
+    const customSub=CFG.customFields.filter(f=>f.type==='sub').reduce((s,f)=>s+Math.abs((sal.customValues||{})[f.id]||0),0);
+    const leave=adj.leave||0;
+    const overtime=Math.abs(adj.overtime||0);
+    const otherDeduct=Math.abs(adj.otherDeduct||0);
+    const labor=Math.abs(sal.labor||0);
+    const health=Math.abs(sal.health||0);
+    const income=sal.base+achieveBonus+teamBonus+(sal.seasonal||0)+customAdd+overtime;
+    const deduct=labor+health+customSub+Math.abs(leave)+otherDeduct;
+    const net=income-deduct;
+
+    // 薪資快照（封存用，完整記錄當下所有欄位）
+    const salarySnapshot={
+      base:sal.base||0,
+      labor,health,
+      seasonal:sal.seasonal||0,
+      dependents:emp.dependents||0,
+      customFields:CFG.customFields.map(f=>({
+        id:f.id, label:f.label, type:f.type,
+        value:Math.abs((sal.customValues||{})[f.id]||0)
+      }))
+    };
+
+    return{emp,sal,st,bonuses,achieveBonus,teamBonus,leave,overtime,otherDeduct,income,deduct,net,customAdd,customSub,labor,health,salarySnapshot};
+  });
+
+  renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,storeTotal,curMonth);
+  go('result');
+  window._lastResults=results; window._stTotal=stTotal; window._totalRevenue=totalRevenue;
+}
+
+/* ══════════════════════════════════════
+   RENDER RESULTS
+══════════════════════════════════════ */
+function renderResults(results,totalRevenue,stTotal,stJzAll,stFrames,teamBonus,storeTotal={},curMonth=''){
+  D('resEmpty').classList.add('hidden'); D('resContent').classList.remove('hidden');
+  const[y,m]=(D('hdrMonth').value||'').split('-');
+  D('resTit').textContent=`${y}年${parseInt(m)}月 薪資單`;
+  D('resSub').textContent=`${results.length} 位員工　全店業績 $${fmt(Math.round(totalRevenue))}`;
+  D('resBadge').textContent=results.length; D('resBadge').classList.remove('hidden');
+
+  const totalNet=results.reduce((s,r)=>s+r.net,0);
+  const totalAchieve=results.reduce((s,r)=>s+r.achieveBonus,0);
+  D('resStats').innerHTML=`
+    <div class="sc"><div class="si" style="background:rgba(79,142,245,.12)">💰</div><div>
+      <div class="sl">全店業績</div><div class="sv blue">$${fmt(Math.round(totalRevenue))}</div>
+      <div style="font-size:10px;color:var(--t3)">團體績效 $${fmt(teamBonus)}/人</div></div></div>
+    <div class="sc"><div class="si" style="background:rgba(240,180,41,.12)">🏆</div><div>
+      <div class="sl">達標獎金合計</div><div class="sv gold">$${fmt(totalAchieve)}</div></div></div>
+    <div class="sc"><div class="si" style="background:rgba(46,204,113,.12)">📊</div><div>
+      <div class="sl">實發薪資合計</div><div class="sv green">$${fmt(totalNet)}</div></div></div>
+    <div class="sc"><div class="si" style="background:rgba(6,182,212,.12)">👥</div><div>
+      <div class="sl">員工人數</div><div class="sv" style="color:var(--ac6)">${results.length}</div></div></div>`;
+
+  D('storeOverview').innerHTML=`<div class="g5">
+    ${[['晶鑽單焦','var(--ac)',stTotal.jz.toFixed(1),'副'],
+       ['晶鑽變色','var(--ac6)',stTotal.jzc.toFixed(1),'副'],
+       ['BBGR','var(--ac4)',stTotal.bbgr.toFixed(1),'副'],
+       ['鏡框合計','var(--ac2)',stFrames,'支'],
+       ['墨鏡','var(--ac3)',stTotal.sg,'支']].map(([lbl,col,val,unit])=>`
+    <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px;text-align:center">
+      <div class="xs muted mb8">${lbl}</div>
+      <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${col}">${val}<span style="font-size:10px;color:var(--t2)"> ${unit}</span></div>
+    </div>`).join('')}
+  </div>
+  <div class="xs muted mt8">鏡框明細：$1780 × ${stTotal.f1780}　$2380 × ${stTotal.f2380}　$2780 × ${stTotal.f2780}　$3980 × ${stTotal.f3980}</div>`;
+
+  const maxNet=Math.max(...results.map(r=>r.net),1);
+  D('slipList').innerHTML=results.map((r,rank)=>{
+    const medal=rank===0?'🥇':rank===1?'🥈':rank===2?'🥉':'';
+    const rc=ROLE_COLORS[r.emp.role]||'var(--ac)';
+    const pct=r.net/maxNet*100;
+    const bKeys=BONUS_KEYS.filter(bk=>r.emp.bonusRules?.[bk.key]?.enabled);
+    return`<div class="slip">
+      <div class="slip-hd">
+        <div class="slip-name">
+          <div class="av" style="background:${rc}">${(r.emp.name||'?').charAt(0)}</div>
+          <div>
+            <div style="font-weight:800;font-size:13px">${medal} ${esc(r.emp.name)}</div>
+            <div class="xs muted">${esc(r.emp.store)} ｜ ${esc(r.emp.role)} ｜ 扶養 ${r.emp.dependents||0} 人</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="xs muted">實領薪資</div>
+          <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${r.net>=0?'var(--ac3)':'var(--ac5)'}">${r.net>=0?'$'+fmt(r.net):'−$'+fmt(Math.abs(r.net))}</div>
+        </div>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+      <div style="background:var(--bg);border-radius:var(--r);padding:8px 10px;margin-bottom:8px">
+        <div class="xs muted mb6">📦 個人銷售明細</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${bKeys.map(bk=>{
+            const mappedStoreKey=Object.keys(storeTotal).find(k=>k===r.emp.store||k.includes(r.emp.store)||r.emp.store.includes(k))||r.emp.store;
+            const empStoreTot=storeTotal[mappedStoreKey]||{};
+            const mgrJzQty=(empStoreTot.jz||0);  // 只算晶鑽單焦，不含變色
+            const mgrFrameQty=(empStoreTot.f1780||0)+(empStoreTot.f2380||0)+(empStoreTot.f2780||0)+(empStoreTot.f3980||0);
+            let qty=0;
+            if(bk.key==='jz') qty=r.st.jz;
+            else if(bk.key==='jzc') qty=r.st.jzc;
+            else if(bk.key==='bbgr') qty=r.st.bbgr;
+            else if(bk.key==='sg') qty=r.st.sg;
+            else if(bk.key==='f1780') qty=r.st.f1780;
+            else if(bk.key==='f2380') qty=r.st.f2380;
+            else if(bk.key==='f2780') qty=r.st.f2780;
+            else if(bk.key==='f3980') qty=r.st.f3980;
+            else if(bk.key==='mgr_jz') qty=mgrJzQty;
+            else if(bk.key==='mgr_frame') qty=mgrFrameQty;
+            if(qty<=0) return '';
+            const bon=r.bonuses[bk.key]||0;
+            const dispQty=bk.key==='mgr_jz'?mgrJzQty.toFixed(1):bk.key==='mgr_frame'?mgrFrameQty:(qty%1!==0?qty.toFixed(1):qty);
+            return`<span class="badge bb">${esc(bk.label)} ${dispQty}${bk.unit}${bon>0?' → $'+fmt(bon):'（未達標）'}</span>`;
+          }).join('')||'<span class="xs muted">本月無有效銷售</span>'}
+        </div>
+        <div style="margin-top:5px;display:flex;gap:10px;flex-wrap:wrap">
+          <span class="xs muted">業績 <strong style="color:var(--tx)">$${fmt(Math.round(r.st.revenue))}</strong></span>
+          <span class="xs muted">訂單 <strong style="color:var(--tx)">${r.st.orderCount}</strong></span>
+          <span class="xs muted">客單 <strong style="color:var(--tx)">$${r.st.orderCount?fmt(Math.round(r.st.revenue/r.st.orderCount)):'-'}</strong></span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 14px">
+        <div>
+          <div class="srow"><span class="slbl">底薪</span><span class="sval">$${fmt(r.sal?.base??r.emp.base)}</span></div>
+          <div class="srow"><span class="slbl">達標獎金</span><span class="sval gold">$${fmt(r.achieveBonus)}</span></div>
+          <div class="srow"><span class="slbl">團體績效</span><span class="sval gold">$${fmt(r.teamBonus)}</span></div>
+          ${(r.sal?.seasonal??r.emp.seasonal??0)>0?`<div class="srow"><span class="slbl">季獎金</span><span class="sval">$${fmt(r.sal?.seasonal??r.emp.seasonal??0)}</span></div>`:''}
+          ${r.overtime>0?`<div class="srow"><span class="slbl">加班費</span><span class="sval">$${fmt(r.overtime)}</span></div>`:''}
+          ${CFG.customFields.filter(f=>f.type==='add').filter(f=>Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0)>0).map(f=>`
+          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval">$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
+        </div>
+        <div>
+          ${r.labor>0?`<div class="srow"><span class="slbl">勞保（扣）</span><span class="sval red">−$${fmt(r.labor)}</span></div>`:''}
+          ${r.health>0?`<div class="srow"><span class="slbl">健保（扣）</span><span class="sval red">−$${fmt(r.health)}</span></div>`:''}
+          ${Math.abs(r.leave||0)>0?`<div class="srow"><span class="slbl">請假扣款</span><span class="sval red">−$${fmt(Math.abs(r.leave))}</span></div>`:''}
+          ${r.otherDeduct>0?`<div class="srow"><span class="slbl">${esc(getAdj(r.emp.id,curMonth).deductNote||'其他扣款')}</span><span class="sval red">−$${fmt(r.otherDeduct)}</span></div>`:''}
+          ${CFG.customFields.filter(f=>f.type==='sub').filter(f=>Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0)>0).map(f=>`
+          <div class="srow"><span class="slbl">${esc(f.label)}</span><span class="sval red">−$${fmt(Math.abs(((r.sal?.customValues)??(r.emp.customValues||{}))[f.id]||0))}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="slip-tot">
+        <div class="xs muted">收入 $${fmt(r.income)}　扣款 $${fmt(r.deduct)}${getAdj(r.emp.id,curMonth).note?'　備註：'+esc(getAdj(r.emp.id,curMonth).note):''}</div>
+        <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${r.net>=0?'var(--ac3)':'var(--ac5)'}">實領 ${r.net>=0?'$'+fmt(r.net):'−$'+fmt(Math.abs(r.net))}</div>
+      </div>
+      ${(()=>{
+        // 顯示下月目標
+        const nk=nextMonthKey();
+        const[ny,nm]=nk.split('-');
+        const empTargets=CFG.nextMonthTiers[nk]?._empTargets?.[r.emp.id]||{};
+        const br=r.emp.bonusRules||{};
+        const enabledKeys=BONUS_KEYS.filter(bk=>br[bk.key]?.enabled);
+        const rows=enabledKeys.map(bk=>{
+          const tiers=empTargets[bk.key]||br[bk.key]?.tiers||[];
+          if(!tiers.length) return '';
+          const sorted=[...tiers].sort((a,b)=>a.min-b.min);
+          return`<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:700;color:${bk.color};min-width:130px">${bk.label}</span>
+            ${sorted.map(t=>`<span class="badge bb" style="font-size:10px">${t.min}${t.max!=null?'～'+t.max:'以上'}${bk.unit} → <span class="gold">$${fmt(t.bonus)}</span></span>`).join('')}
+          </div>`;
+        }).filter(Boolean).join('');
+        if(!rows) return '';
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd);margin-top:8px">
+          <div class="xs muted mb8" style="font-weight:700">📋 ${ny}年${parseInt(nm)}月 獎金目標</div>
+          ${rows}
+        </div>`;
+      })()}
+      ${(()=>{
+        const po=window._pendingOrders?.[r.emp.name]||{};
+        const pending=po.pending||[];
+        const same=po.sameMonth||[];
+        const cross=po.crossMonth||[];
+        if(!pending.length&&!same.length&&!cross.length) return '';
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd);margin-top:8px;font-size:11px">
+          ${pending.length?`<div class="mb6"><span style="color:var(--ac3);font-weight:700">⏳ 本月未結清預訂（${pending.length}筆）：</span>${pending.map(c=>`<span class="badge bb" style="margin-left:4px">${esc(c)}</span>`).join('')}</div>`:''}
+          ${same.length?`<div class="mb6"><span style="color:var(--ac2);font-weight:700">✅ 當月預訂已結清（${same.length}筆）：</span>${same.map(c=>`<span class="badge bb" style="margin-left:4px">${esc(c)}</span>`).join('')}</div>`:''}
+          ${cross.length?`<div><span style="color:var(--t2);font-weight:700">↩ 跨月尾款收款（${cross.length}筆）：</span>${cross.map(c=>`<span class="badge bb" style="margin-left:4px">${esc(c)}</span>`).join('')}</div>`:''}
+        </div>`;
+      })()}
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   NEXT MONTH
+══════════════════════════════════════ */
+function nextMonthKey(){
+  const[cy,cm]=(D('hdrMonth').value||'').split('-');
+  let ny=parseInt(cy)||new Date().getFullYear(), nm=(parseInt(cm)||1)+1;
+  if(nm>12){nm=1;ny++;} return `${ny}-${String(nm).padStart(2,'0')}`;
+}
+
+function onMonthChange(){
+  renderNextMonth();
+  renderAdjBody();
+  updateCalcMonthSel();
+  // 同步計算月份選單
+  const sel=D('calcMonthSel');
+  const hm=D('hdrMonth').value;
+  if(sel&&hm) sel.value=hm;
+}
+
+function renderNextMonth(){
+  const nk=nextMonthKey();
+  const[ny,nm]=nk.split('-');
+  const curMonth=D('hdrMonth').value||'';
+  const[cy,cm]=curMonth.split('-');
+  D('nextLbl').textContent=`設定 ${ny}年${parseInt(nm)}月 各員工獎金目標`;
+
+  if(!CFG.employees.length){
+    D('nextContent').innerHTML='<div class="xs muted" style="padding:20px;text-align:center">請先到「員工設定」新增員工</div>';
+    return;
+  }
+
+  // 初始化此月份的 nextMonthTiers（若無則用員工個人規則）
+  if(!CFG.nextMonthTiers[nk]) CFG.nextMonthTiers[nk]={};
+  if(!CFG.nextMonthTiers[nk]._empTargets) CFG.nextMonthTiers[nk]._empTargets={};
+
+  D('nextContent').innerHTML=`
+  <div class="al ai mb12" style="font-size:11px">
+    為每位員工設定 ${ny}年${parseInt(nm)}月的獎金目標。儲存後封存薪資時會自動附在薪資單底部發給員工。
+  </div>
+  ${CFG.employees.map(emp=>{
+    const empTargets=CFG.nextMonthTiers[nk]._empTargets[emp.id]||{};
+    const br=emp.bonusRules||{};
+    const enabledKeys=BONUS_KEYS.filter(bk=>br[bk.key]?.enabled);
+    if(!enabledKeys.length) return `<div class="card mb8"><div class="fc g8"><div class="emp-name-row">${esc(emp.name)}</div><span class="xs muted">（此員工無啟用的獎金品項）</span></div></div>`;
+    const rc=ROLE_COLORS[emp.role]||'var(--ac)';
+    return`<div class="card mb10">
+      <div class="fc g8 mb10">
+        <div class="av" style="background:${rc};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000;flex-shrink:0">${(emp.name||'?').charAt(0)}</div>
+        <div>
+          <div style="font-weight:700">${esc(emp.name)}</div>
+          <div class="xs muted">${esc(emp.store)} ｜ ${esc(emp.role)}</div>
+        </div>
+        <button class="btn bo bsm" style="margin-left:auto" onclick="copyEmpTargetFrom('${nk}','${emp.id}')">📋 複製他人</button>
+        <button class="btn bo bsm" onclick="resetEmpTarget('${nk}','${emp.id}')">↺ 重置</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        ${enabledKeys.map(bk=>{
+          // 優先：此月員工個人設定 > 員工個人規則 tiers
+          const tiers=empTargets[bk.key]||br[bk.key]?.tiers||[];
+          const hasOv=!!(empTargets[bk.key]);
+          return`<div style="border:1px solid var(--bd);border-radius:var(--r);padding:10px;border-left:3px solid ${bk.color}">
+            <div class="fc g6 mb8">
+              <span style="font-size:11px;font-weight:700;color:${bk.color}">${bk.label}</span>
+              <span class="xs muted">（${bk.unit}）</span>
+              ${hasOv?'<span class="badge bo2" style="font-size:9px">已調整</span>':''}
+            </div>
+            ${tiers.map((t,i)=>`<div class="fc g6 mb6" style="flex-wrap:wrap">
+              <span class="xs muted">達</span>
+              <input type="number" value="${t.min}" style="width:58px;font-size:11px"
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'min',this.value)">
+              <span class="xs muted">～</span>
+              <input type="number" value="${t.max??''}" placeholder="以上" style="width:58px;font-size:11px"
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'max',this.value)">
+              <span class="xs muted">→</span>
+              <input type="number" value="${t.bonus}" style="width:70px;font-size:11px"
+                oninput="updateNmTier('${nk}','${emp.id}','${bk.key}',${i},'bonus',this.value)">
+              <span class="xs muted">元</span>
+            </div>`).join('')||'<div class="xs muted">（無設定）</div>'}
+            <button class="btn bo bsm mt8" style="font-size:10px" onclick="addEmpNmTier('${nk}','${emp.id}','${bk.key}')">＋</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('')}
+  <div class="fc g8 mt12">
+    <button class="btn bp" onclick="saveNextMonth()">💾 儲存 ${ny}年${parseInt(nm)}月所有員工目標</button>
+  </div>`;
+}
+
+function addEmpNmTier(nk,empId,bkKey){
+  if(!CFG.nextMonthTiers[nk]) CFG.nextMonthTiers[nk]={};
+  if(!CFG.nextMonthTiers[nk]._empTargets) CFG.nextMonthTiers[nk]._empTargets={};
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId]) {
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId]={};
+    BONUS_KEYS.forEach(bk=>{
+      if(emp?.bonusRules?.[bk.key]?.enabled)
+        CFG.nextMonthTiers[nk]._empTargets[empId][bk.key]=JSON.parse(JSON.stringify(emp.bonusRules[bk.key].tiers||[]));
+    });
+  }
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]) {
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]=JSON.parse(JSON.stringify(emp?.bonusRules?.[bkKey]?.tiers||[]));
+  }
+  const arr=CFG.nextMonthTiers[nk]._empTargets[empId][bkKey];
+  const last=arr.slice(-1)[0];
+  arr.push({min:(last?.max??0)+1,max:null,bonus:0});
+  save(); renderNextMonth();
+}
+
+function resetEmpTarget(nk,empId){
+  if(!CFG.nextMonthTiers[nk]?._empTargets) return;
+  delete CFG.nextMonthTiers[nk]._empTargets[empId];
+  save(); renderNextMonth();
+}
+
+function copyEmpTargetFrom(nk,toEmpId){
+  const others=CFG.employees.filter(e=>e.id!==toEmpId&&e.name);
+  if(!others.length){alert('沒有其他員工');return;}
+  const name=prompt('複製誰的目標？\n'+others.map(e=>e.name).join('、'));
+  if(!name) return;
+  const src=others.find(e=>e.name===name);
+  if(!src){alert('找不到此員工');return;}
+  if(!CFG.nextMonthTiers[nk]) CFG.nextMonthTiers[nk]={};
+  if(!CFG.nextMonthTiers[nk]._empTargets) CFG.nextMonthTiers[nk]._empTargets={};
+  const srcData=CFG.nextMonthTiers[nk]._empTargets[src.id];
+  if(srcData) CFG.nextMonthTiers[nk]._empTargets[toEmpId]=JSON.parse(JSON.stringify(srcData));
+  save(); renderNextMonth();
+}
+
+function updateNmTier(nk,empId,bkKey,i,field,value){
+  if(!CFG.nextMonthTiers[nk]) CFG.nextMonthTiers[nk]={};
+  if(!CFG.nextMonthTiers[nk]._empTargets) CFG.nextMonthTiers[nk]._empTargets={};
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId]){
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId]={};
+    BONUS_KEYS.forEach(bk=>{
+      if(emp?.bonusRules?.[bk.key]?.enabled)
+        CFG.nextMonthTiers[nk]._empTargets[empId][bk.key]=JSON.parse(JSON.stringify(emp.bonusRules[bk.key].tiers||[]));
+    });
+  }
+  if(!CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]){
+    const emp=CFG.employees.find(e=>e.id===empId);
+    CFG.nextMonthTiers[nk]._empTargets[empId][bkKey]=JSON.parse(JSON.stringify(emp?.bonusRules?.[bkKey]?.tiers||[]));
+  }
+  const arr=CFG.nextMonthTiers[nk]._empTargets[empId][bkKey];
+  if(arr[i]){
+    if(field==='max') arr[i].max=value===''?null:+value;
+    else arr[i][field]=+value;
+  }
+  // 不重新渲染（避免輸入中途被重置），只存資料
+  save();
+}
+
+function saveNextMonth(){
+  // 資料已透過 updateNmTier 即時儲存，這裡只需提示
+  const nk=nextMonthKey();
+  const[ny,nm]=nk.split('-');
+  save();
+  alert(`✅ ${ny}年${parseInt(nm)}月各員工目標已儲存！\n封存薪資時會自動附在每人薪資單底部`);
+}
+
+/* ══════════════════════════════════════
+   EXPORT
+══════════════════════════════════════ */
+function exportPayroll(){
+  if(!window._lastResults?.length) return;
+  const customAddFlds=CFG.customFields.filter(f=>f.type==='add');
+  const customSubFlds=CFG.customFields.filter(f=>f.type==='sub');
+  const hdr=['員工','門市','職位','扶養人數','底薪','達標獎金','團體績效','季獎金','加班費',
+    ...customAddFlds.map(f=>f.label),
+    '勞保(扣)','健保(扣)','請假扣款',...customSubFlds.map(f=>f.label),'實領薪資','本月業績','訂單數','平均客單'];
+  const rows=window._lastResults.map(r=>[
+    r.emp.name,r.emp.store,r.emp.role,r.emp.dependents||0,
+    r.sal?.base??r.emp.base??0,r.achieveBonus,r.teamBonus,r.sal?.seasonal??r.emp.seasonal??0,r.overtime,
+    ...customAddFlds.map(f=>(r.emp.customValues||{})[f.id]||0),
+    r.labor,r.health,Math.abs(r.leave),
+    ...customSubFlds.map(f=>(r.emp.customValues||{})[f.id]||0),
+    r.net,Math.round(r.st.revenue),r.st.orderCount,
+    r.st.orderCount?Math.round(r.st.revenue/r.st.orderCount):0
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'薪資單',ws);
+  const[y,m]=(D('hdrMonth').value||'').split('-');
+  XLSX.writeFile(wb,`薪資單_${y}年${parseInt(m)}月.xlsx`);
+}
+function exportSalesReport(){
+  if(!window._lastResults?.length) return;
+  const hdr=['員工','晶鑽單焦(副)','晶鑽變色(副)','BBGR(副)','墨鏡(支)','$1780鏡框','$2380鏡框','$2780鏡框','$3980鏡框','達標獎金'];
+  const rows=window._lastResults.map(r=>[r.emp.name,r.st.jz,r.st.jzc,r.st.bbgr,r.st.sg,r.st.f1780,r.st.f2380,r.st.f2780,r.st.f3980,r.achieveBonus]);
+  if(window._stTotal){const s=window._stTotal;rows.push(['【全店合計】',s.jz,s.jzc,s.bbgr,s.sg,s.f1780,s.f2380,s.f2780,s.f3980,'']);}
+  const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'銷售明細',ws);
+  const[y,m]=(D('hdrMonth').value||'').split('-');XLSX.writeFile(wb,`銷售明細_${y}年${parseInt(m)}月.xlsx`);
+}
+function exportNextMonth(){
+  const nk=nextMonthKey();const[ny,nm]=nk.split('-');
+  const rows=[[`${ny}年${parseInt(nm)}月 獎金目標`,'',''],['','','']];
+  BONUS_KEYS.filter(bk=>!['mgr_jz','mgr_frame'].includes(bk.key)).forEach(bk=>{
+    const tiers=CFG.nextMonthTiers[nk]?.[bk.key]||CFG.templateTiers[bk.key]||[];
+    rows.push([bk.label,'達到數量','獎金元']);
+    tiers.sort((a,b)=>a.min-b.min).forEach(t=>rows.push(['',`${t.min}～${t.max!=null?t.max:'以上'}`,t.bonus]));
+    rows.push(['','','']);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'下月目標',ws);
+  XLSX.writeFile(wb,`下月獎金目標_${ny}年${parseInt(nm)}月.xlsx`);
+}
+function exportCfg(){
+  const data={
+    templateTiers:CFG.templateTiers,
+    teamTiers:CFG.teamTiers,
+    customFields:CFG.customFields,
+    nextMonthTiers:CFG.nextMonthTiers,
+    employees:CFG.employees,
+    payrollHistory:CFG.payrollHistory||[],
+    monthlySalaries:CFG.monthlySalaries||{},
+    reportArchive:(CFG.reportArchive||[]).map(a=>({
+      name:a.name,month:a.month,uploadedAt:a.uploadedAt,rowCount:a.rowCount,
+      preorderMap:a.preorderMap||{},custProdMap:a.custProdMap||{}
+    })),
+    exportedAt:new Date().toLocaleString('zh-TW'),
+    version:'v4'
+  };
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+  a.download=`MyGlasses完整備份_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importCfg(e){
+  const f=e.target.files[0];if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const raw=ev.target.result;
+      console.log('檔案大小：',raw.length,'bytes');
+      console.log('檔案前100字：',raw.slice(0,100));
+
+      let d;
+      try{
+        d=JSON.parse(raw);
+      }catch(parseErr){
+        alert('❌ JSON 格式錯誤：'+parseErr.message+'\n\n檔案可能損壞，請重新匯出');
+        return;
+      }
+
+      console.log('JSON 欄位：',Object.keys(d));
+
+      // 相容舊版格式（直接是 CFG 物件）
+      const src=d.cfg||d;
+
+      if(src.templateTiers) CFG.templateTiers=src.templateTiers;
+      if(src.teamTiers) CFG.teamTiers=src.teamTiers;
+      if(src.customFields) CFG.customFields=src.customFields;
+      if(src.nextMonthTiers) CFG.nextMonthTiers=src.nextMonthTiers;
+      if(src.employees) CFG.employees=src.employees;
+      if(src.payrollHistory) CFG.payrollHistory=src.payrollHistory;
+      if(src.monthlySalaries) CFG.monthlySalaries=src.monthlySalaries;
+      if(src.reportArchive) CFG.reportArchive=src.reportArchive;
+
+      CFG.employees.forEach(e=>{
+        if(!e.afterService) e.afterService={};
+        if(!e.adjustments) e.adjustments={leave:0,overtime:0,note:''};
+      });
+
+      // 儲存並更新畫面
+      try{ localStorage.setItem('mg_v4_cfg',JSON.stringify({
+        templateTiers:CFG.templateTiers,teamTiers:CFG.teamTiers,
+        customFields:CFG.customFields,nextMonthTiers:CFG.nextMonthTiers,
+        employees:CFG.employees,payrollHistory:CFG.payrollHistory||[],
+        monthlySalaries:CFG.monthlySalaries||{},
+      }));}catch(se){console.error('localStorage 儲存失敗',se);}
+
+      renderAll();
+      renderHistoryList();
+      updateCalcMonthSel();
+
+      const ds=D('dataStatus');
+      if(ds&&CFG.employees.length){
+        ds.textContent=`✅ ${CFG.employees.length}位員工`;
+        ds.style.color='var(--ac2)';
+      }
+
+      alert(`✅ 匯入成功！\n員工：${CFG.employees.length}位\n歷史薪資：${CFG.payrollHistory?.length||0}個月\n報表庫：${CFG.reportArchive?.length||0}份`);
+
+    }catch(err){
+      console.error('匯入失敗：',err);
+      alert('❌ 匯入失敗：'+err.message);
+    }
+  };
+  r.readAsText(f,'UTF-8');
+}
+
+/* ══════════════════════════════════════
+   DEMO
+══════════════════════════════════════ */
+function loadDemo(){
+  CFG.templateTiers={
+    jz:[{min:1,max:9,bonus:200},{min:10,max:19,bonus:500},{min:20,max:null,bonus:1000}],
+    jzc:[{min:1,max:9,bonus:200},{min:10,max:null,bonus:500}],
+    bbgr:[{min:1,max:4,bonus:300},{min:5,max:null,bonus:600}],
+    sg:[{min:5,max:9,bonus:300},{min:10,max:null,bonus:600}],
+    f1780:[{min:10,max:19,bonus:500},{min:20,max:null,bonus:1000}],
+    f2380:[{min:10,max:19,bonus:600},{min:20,max:null,bonus:1200}],
+    f2780:[{min:8,max:14,bonus:800},{min:15,max:null,bonus:1600}],
+    f3980:[{min:5,max:9,bonus:500},{min:10,max:null,bonus:1000}],
+    mgr_jz:[{min:30,max:null,bonus:2000}],
+    mgr_frame:[{min:40,max:null,bonus:2000}],
+  };
+  CFG.teamTiers=[{min:600000,bonus:6000},{min:800000,bonus:12000},{min:1000000,bonus:20000}];
+  CFG.customFields=[
+    {id:'cf1',label:'伙食津貼',type:'add'},
+    {id:'cf2',label:'交通津貼',type:'add'},
+  ];
+  function mkRules(enabledKeys, tiersOverride={}){
+    const rules={};
+    BONUS_KEYS.forEach(bk=>{
+      rules[bk.key]={
+        enabled:enabledKeys.includes(bk.key),
+        tiers:JSON.parse(JSON.stringify(tiersOverride[bk.key]||CFG.templateTiers[bk.key]||[]))
+      };
+    });
+    return rules;
+  }
+  CFG.employees=[
+    {id:'e1',name:'邱柏豪',store:'My glasses民生店',role:'店長',base:35000,labor:1200,health:800,dependents:1,seasonal:0,
+      customValues:{cf1:2000,cf2:1000},
+      bonusRules:mkRules(['jz','jzc','bbgr','sg','f1780','f2380','f2780','f3980','mgr_jz','mgr_frame'],{
+        jz:[{min:1,max:9,bonus:250},{min:10,max:19,bonus:600},{min:20,max:null,bonus:1200}]
+      }),adjustments:{leave:0,overtime:0,note:''}},
+    {id:'e2',name:'謝采紘',store:'My glasses民生店',role:'門市人員',base:28000,labor:950,health:680,dependents:0,seasonal:0,
+      customValues:{cf1:2000,cf2:0},
+      bonusRules:mkRules(['jz','f1780','f2380','f2780','f3980'],{
+        f1780:[{min:8,max:null,bonus:400}]
+      }),adjustments:{leave:0,overtime:0,note:''}},
+    {id:'e3',name:'夏珮雯',store:'My glasses河堤店',role:'店長',base:35000,labor:1200,health:800,dependents:0,seasonal:0,
+      customValues:{cf1:2000,cf2:1000},
+      bonusRules:mkRules(['jz','jzc','bbgr','sg','f1780','f2380','f2780','f3980','mgr_jz','mgr_frame']),
+      adjustments:{leave:0,overtime:0,note:''}},
+    {id:'e4',name:'鍾郁琇',store:'My glasses河堤店',role:'驗光師',base:32000,labor:1100,health:750,dependents:1,seasonal:0,
+      customValues:{cf1:2000,cf2:0},
+      bonusRules:mkRules(['jz','jzc','bbgr','f2380','f2780','f3980']),
+      adjustments:{leave:0,overtime:0,note:''}},
+    {id:'e5',name:'李羿萱',store:'雙店支援',role:'門市人員',base:28000,labor:950,health:680,dependents:0,seasonal:0,
+      customValues:{cf1:2000,cf2:0},
+      bonusRules:mkRules(['jz','jzc','f1780','f2380']),
+      adjustments:{leave:0,overtime:0,note:''}},
+  ];
+  save();renderAll();renderAdjBody();
+  alert('✅ 範例已載入！\n\n每位員工已設定不同獎金規則。\n可到「員工設定」→ 點「🎯 獎金規則」查看每人設定。');
+}
+
+/* ══════════════════════════════════════
+   PAYROLL ARCHIVE & HISTORY
+══════════════════════════════════════ */
+function archiveMonth(){
+  if(!window._lastResults?.length){alert('請先計算薪資單');return;}
+  const month=D('hdrMonth').value||'';
+  const[y,m]=month.split('-');
+  const existing=CFG.payrollHistory.findIndex(h=>h.month===month);
+  if(existing>=0&&!confirm(`${y}年${parseInt(m)}月已有封存記錄，確定要覆蓋嗎？`)) return;
+
+  // 快照當下每位員工的獎金規則
+  const rulesSnapshot={};
+  CFG.employees.forEach(e=>{
+    rulesSnapshot[e.id]={
+      name:e.name,
+      bonusRules:JSON.parse(JSON.stringify(e.bonusRules||{}))
+    };
+  });
+
+  // 計算下月目標快照（用於薪資單底部顯示）
+  const nk=nextMonthKey();
+  const nextTargetSnapshot={};
+  BONUS_KEYS.forEach(bk=>{
+    nextTargetSnapshot[bk.key]=CFG.nextMonthTiers[nk]?.[bk.key]||CFG.templateTiers[bk.key]||[];
+  });
+
+  const record={
+    month, archivedAt:new Date().toLocaleString('zh-TW'),
+    totalRevenue:window._lastRevenue||0,
+    storeTotal:window._stTotal||{},
+    nextTargetSnapshot,
+    results:window._lastResults.map(r=>({
+      empId:r.emp.id, empName:r.emp.name,
+      store:r.emp.store, role:r.emp.role,
+      base:r.sal?.base??r.emp.base??0, labor:r.labor, health:r.health,
+      seasonal:r.sal?.seasonal??r.emp.seasonal??0,
+      customValues:JSON.parse(JSON.stringify((r.sal?.customValues??r.emp.customValues)||{})),
+      achieveBonus:r.achieveBonus, teamBonus:r.teamBonus,
+      leave:r.leave, overtime:r.overtime, otherDeduct:r.otherDeduct||0,
+      deductNote:getAdj(r.emp.id,month).deductNote||'',
+      income:r.income, deduct:r.deduct, net:r.net,
+      productBonuses:r.bonuses,
+      salesDetail:{
+        jz:r.st.jz,jzc:r.st.jzc,bbgr:r.st.bbgr,sg:r.st.sg,
+        f1780:r.st.f1780,f2380:r.st.f2380,f2780:r.st.f2780,f3980:r.st.f3980,
+        revenue:r.st.revenue,orderCount:r.st.orderCount
+      },
+      // 快照此員工下月目標（個人設定優先，否則用個人規則）
+      nextTargets:JSON.parse(JSON.stringify(
+        Object.fromEntries(
+          BONUS_KEYS
+            .filter(bk=>r.emp.bonusRules?.[bk.key]?.enabled)
+            .map(bk=>[bk.key,
+              CFG.nextMonthTiers[nk]?._empTargets?.[r.emp.id]?.[bk.key]
+              ||r.emp.bonusRules[bk.key]?.tiers||[]
+            ])
+        )
+      ))
+    }))
+  };
+
+  if(existing>=0) CFG.payrollHistory[existing]=record;
+  else CFG.payrollHistory.unshift(record);
+  // 只保留 24 個月
+  if(CFG.payrollHistory.length>24) CFG.payrollHistory=CFG.payrollHistory.slice(0,24);
+  save();
+  renderHistoryList();
+  const badge=D('histBadge');
+  if(badge){badge.textContent=CFG.payrollHistory.length;badge.classList.remove('hidden');}
+  alert(`✅ ${y}年${parseInt(m)}月薪資已封存！\n可到「📁 歷史薪資」頁面查看`);
+}
+
+function renderHistoryList(){
+  const hist=CFG.payrollHistory||[];
+  const badge=D('histBadge');
+  if(badge){badge.textContent=hist.length;badge.classList.toggle('hidden',hist.length===0);}
+  if(!hist.length){
+    D('historyEmpty').style.display='';
+    D('historyList').innerHTML='';
+    return;
+  }
+  D('historyEmpty').style.display='none';
+  D('historyList').innerHTML=hist.map((h,idx)=>{
+    const[y,m]=h.month.split('-');
+    const totalNet=h.results.reduce((s,r)=>s+(r.net||0),0);
+    return`<div class="card mb12">
+      <div class="fb mb10">
+        <div>
+          <div style="font-size:15px;font-weight:800">${y}年${parseInt(m)}月 封存薪資</div>
+          <div class="xs muted">封存時間：${h.archivedAt}　${h.results.length}位員工　實發合計 $${fmt(totalNet)}</div>
+        </div>
+        <div class="row-btn">
+          <button class="btn bo bsm" onclick="exportHistoryMonth(${idx})">📥 匯出</button>
+          <button class="btn bo bsm" onclick="printHistoryMonth(${idx})">🖨 列印</button>
+          <button class="bgh" onclick="delHistory(${idx})">🗑</button>
+        </div>
+      </div>
+      <div id="hist_slips_${idx}">
+        ${renderHistorySlips(h,idx)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistorySlips(h,hidx){
+  const maxNet=Math.max(...h.results.map(r=>r.net||0),1);
+  return h.results.map((r,ri)=>{
+    const medal=ri===0?'🥇':ri===1?'🥈':ri===2?'🥉':'';
+    const pct=(r.net||0)/maxNet*100;
+    const rc=ROLE_COLORS[r.role]||'var(--ac)';
+
+    // 重新計算實領（用可編輯欄位的當前值）
+    const income=(r.base||0)+(r.achieveBonus||0)+(r.teamBonus||0)+(r.seasonal||0)+(r.overtime||0);
+    const deduct=(r.labor||0)+(r.health||0)+Math.abs(r.leave||0)+(r.extraDeduct||0);
+    const net=income-deduct+(r.extraAdd||0);
+
+    // 下月目標（只顯示此員工啟用的品項）
+    const nextTargets=r.nextTargets||{};
+    const targetRows=Object.entries(nextTargets).filter(([,tiers])=>tiers.length>0).map(([key,tiers])=>{
+      const bk=BONUS_KEYS.find(b=>b.key===key);
+      if(!bk) return '';
+      const sorted=[...tiers].sort((a,b)=>a.min-b.min);
+      return`<div style="margin-bottom:5px;display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+        <span style="font-size:11px;font-weight:700;color:${bk.color};min-width:120px">${bk.label}</span>
+        ${sorted.map(t=>`<span class="badge bb" style="font-size:10px">${t.min}${t.max!=null?'～'+t.max:'以上'}${bk.unit} → <span class="gold">$${fmt(t.bonus)}</span></span>`).join('')}
+      </div>`;
+    }).join('');
+
+    const editId=hidx!==undefined?`h${hidx}_r${ri}`:'';
+    const canEdit=hidx!==undefined;
+
+    return`<div class="slip" style="margin-bottom:8px" id="slip_${editId}">
+      <div class="slip-hd">
+        <div class="slip-name">
+          <div class="av" style="background:${rc}">${(r.empName||'?').charAt(0)}</div>
+          <div>
+            <div style="font-weight:800;font-size:13px">${medal} ${esc(r.empName)}</div>
+            <div class="xs muted">${esc(r.store)} ｜ ${esc(r.role)}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="xs muted">實領薪資</div>
+          <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${net>=0?'var(--ac3)':'var(--ac5)'}" id="net_${editId}">${net>=0?'$'+fmt(net):'−$'+fmt(Math.abs(net))}</div>
+        </div>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;margin-bottom:8px">
+        <div>
+          <div class="srow"><span class="slbl">底薪</span><span class="sval">$${fmt(r.base)}</span></div>
+          <div class="srow"><span class="slbl">達標獎金</span><span class="sval gold">$${fmt(r.achieveBonus)}</span></div>
+          <div class="srow"><span class="slbl">團體績效</span><span class="sval gold">$${fmt(r.teamBonus)}</span></div>
+          <div class="srow"><span class="slbl">季獎金</span><span class="sval">$${fmt(r.seasonal||0)}</span></div>
+          <div class="srow">
+            <span class="slbl">加班費</span>
+            ${canEdit?`<input type="number" value="${r.overtime||0}" style="width:90px;font-size:11px;text-align:right" onchange="updateHistField(${hidx},${ri},'overtime',+this.value)">`:`<span class="sval">$${fmt(r.overtime||0)}</span>`}
+          </div>
+          <div class="srow">
+            <span class="slbl">其他加項</span>
+            ${canEdit?`<input type="number" value="${r.extraAdd||0}" placeholder="0" style="width:90px;font-size:11px;text-align:right" onchange="updateHistField(${hidx},${ri},'extraAdd',+this.value)">`:`<span class="sval">$${fmt(r.extraAdd||0)}</span>`}
+          </div>
+        </div>
+        <div>
+          <div class="srow"><span class="slbl">勞保（扣）</span><span class="sval red">−$${fmt(r.labor||0)}</span></div>
+          <div class="srow"><span class="slbl">健保（扣）</span><span class="sval red">−$${fmt(r.health||0)}</span></div>
+          <div class="srow">
+            <span class="slbl">請假扣款</span>
+            ${canEdit?`<input type="number" value="${Math.abs(r.leave||0)}" placeholder="0" style="width:90px;font-size:11px;text-align:right" onchange="updateHistField(${hidx},${ri},'leave',-Math.abs(+this.value))">`:`<span class="sval red">−$${fmt(Math.abs(r.leave||0))}</span>`}
+          </div>
+          <div class="srow">
+            <span class="slbl">其他扣項</span>
+            ${canEdit?`<input type="number" value="${r.extraDeduct||0}" placeholder="0" style="width:90px;font-size:11px;text-align:right" onchange="updateHistField(${hidx},${ri},'extraDeduct',+this.value)">`:`<span class="sval red">−$${fmt(r.extraDeduct||0)}</span>`}
+          </div>
+          ${canEdit?`<div class="srow"><span class="slbl">備註</span><input value="${esc(r.note||'')}" placeholder="備註" style="width:110px;font-size:11px" onchange="updateHistField(${hidx},${ri},'note',this.value)"></div>`:''}
+        </div>
+      </div>
+      <div class="slip-tot mb8" id="tot_${editId}">
+        <div class="xs muted">收入 $${fmt(income+(r.extraAdd||0))}　扣款 $${fmt(deduct)}${r.note?'　備註：'+esc(r.note):''}</div>
+        <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${net>=0?'var(--ac3)':'var(--ac5)'}">實領 ${net>=0?'$'+fmt(net):'−$'+fmt(Math.abs(net))}</div>
+      </div>
+      ${(()=>{
+        // 達標數量明細
+        const sd=r.salesDetail||{};
+        const items=[
+          {k:'jz',lbl:'晶鑽單焦',unit:'副',color:'#60a5fa'},
+          {k:'jzc',lbl:'晶鑽變色',unit:'副',color:'#818cf8'},
+          {k:'bbgr',lbl:'BBGR',unit:'副',color:'#a78bfa'},
+          {k:'f1780',lbl:'$1780框',unit:'支',color:'#34d399'},
+          {k:'f2380',lbl:'$2380框',unit:'支',color:'#10b981'},
+          {k:'f2780',lbl:'$2780框',unit:'支',color:'#059669'},
+          {k:'f3980',lbl:'$3980框',unit:'支',color:'#047857'},
+          {k:'sg',lbl:'墨鏡',unit:'支',color:'#f59e0b'},
+        ].filter(i=>(sd[i.k]||0)>0);
+        if(!items.length) return '';
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:8px 10px;border:1px solid var(--bd);margin-bottom:8px">
+          <div class="xs muted mb6" style="font-weight:700">📊 本月達標數量</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${items.map(i=>`<span style="font-size:11px;font-weight:600;color:${i.color}">${i.lbl} <span style="color:var(--t1)">${sd[i.k]}${i.unit}</span></span>`).join('<span style="color:var(--bd)">｜</span>')}
+          </div>
+        </div>`;
+      })()}
+      ${(()=>{
+        // 優先用封存的目標，若空則從當前下月設定讀取
+        const nk2=nextMonthKey_for_month(h.month);
+        let targets=r.nextTargets||{};
+        const hasArchived=Object.values(targets).some(t=>t.length>0);
+        if(!hasArchived){
+          // 嘗試從當前 nextMonthTiers 讀取
+          const empId=r.empId;
+          const empTargets=CFG.nextMonthTiers[nk2]?._empTargets?.[empId]||{};
+          // 找對應員工的 bonusRules
+          const emp=CFG.employees.find(e=>e.id===empId||e.name===r.empName);
+          if(emp){
+            BONUS_KEYS.forEach(bk=>{
+              if(emp.bonusRules?.[bk.key]?.enabled){
+                const t=empTargets[bk.key]||emp.bonusRules[bk.key]?.tiers||[];
+                if(t.length) targets[bk.key]=t;
+              }
+            });
+          }
+        }
+        const hasTargets=Object.values(targets).some(t=>t&&t.length>0);
+        if(!hasTargets) return `<div class="xs muted mt8" style="padding:8px;background:var(--s3);border-radius:var(--r)">📋 下月目標未設定，請到「📋 下月目標」頁面設定後重新封存</div>`;
+        const[ny,nm]=nk2.split('-');
+        const tRows=Object.entries(targets).filter(([,t])=>t&&t.length>0).map(([key,tiers])=>{
+          const bk=BONUS_KEYS.find(b=>b.key===key); if(!bk) return '';
+          const sorted=[...tiers].sort((a,b)=>a.min-b.min);
+          return`<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:700;color:${bk.color};min-width:130px">${bk.label}</span>
+            ${sorted.map(t=>`<span class="badge bb" style="font-size:10px">${t.min}${t.max!=null?'～'+t.max:'以上'}${bk.unit} → <span class="gold">$${fmt(t.bonus)}</span></span>`).join('')}
+          </div>`;
+        }).filter(Boolean).join('');
+        return`<div style="background:var(--s3);border-radius:var(--r);padding:10px;border:1px solid var(--bd);margin-top:8px">
+          <div class="xs muted mb8" style="font-weight:700">📋 ${ny}年${parseInt(nm)}月 獎金目標</div>
+          ${tRows}
+        </div>`;
+      })()}
+    </div>`;
+  }).join('');
+}
+
+function nextMonthLabel(month){
+  const[cy,cm]=(month||'').split('-');
+  let ny=parseInt(cy)||new Date().getFullYear(), nm=(parseInt(cm)||1)+1;
+  if(nm>12){nm=1;ny++;}
+  return `${ny}年${nm}月`;
+}
+function nextMonthKey_for_month(month){
+  const[cy,cm]=(month||'').split('-');
+  let ny=parseInt(cy)||new Date().getFullYear(), nm=(parseInt(cm)||1)+1;
+  if(nm>12){nm=1;ny++;} return `${ny}-${String(nm).padStart(2,'0')}`;
+}
+
+function updateHistField(hidx,ri,field,value){
+  const h=CFG.payrollHistory[hidx]; if(!h) return;
+  const r=h.results[ri]; if(!r) return;
+  r[field]=value;
+  // 重新計算 net
+  const income=(r.base||0)+(r.achieveBonus||0)+(r.teamBonus||0)+(r.seasonal||0)+(r.overtime||0);
+  const deduct=(r.labor||0)+(r.health||0)+Math.abs(r.leave||0)+(r.extraDeduct||0)+(r.otherDeduct||0);
+  r.net=income-deduct+(r.extraAdd||0);
+  r.income=income+(r.extraAdd||0);
+  r.deduct=deduct;
+  save();
+  // 即時更新顯示
+  const editId=`h${hidx}_r${ri}`;
+  const netEl=D('net_'+editId);
+  const totEl=D('tot_'+editId);
+  if(netEl) netEl.textContent=r.net>=0?'$'+fmt(r.net):'−$'+fmt(Math.abs(r.net));
+  if(totEl) totEl.querySelector('div:last-child').textContent=`實領 ${r.net>=0?'$'+fmt(r.net):'−$'+fmt(Math.abs(r.net))}`;
+}
+
+function delHistory(idx){
+  if(!confirm('確定刪除此月封存記錄？')) return;
+  CFG.payrollHistory.splice(idx,1);
+  save(); renderHistoryList();
+}
+
+function exportHistoryMonth(idx){
+  const h=CFG.payrollHistory[idx]; if(!h) return;
+  const[y,m]=h.month.split('-');
+  const hdr=['員工','門市','職位','底薪','達標獎金','團體績效','季獎金','加班費','勞保(扣)','健保(扣)','請假扣款','實領薪資'];
+  const rows=h.results.map(r=>[r.empName,r.store,r.role,r.base,r.achieveBonus,r.teamBonus,r.seasonal||0,r.overtime||0,r.labor||0,r.health||0,Math.abs(r.leave||0),r.net||0]);
+  const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'薪資',ws);
+  XLSX.writeFile(wb,`薪資封存_${y}年${parseInt(m)}月.xlsx`);
+}
+
+function exportAllHistory(){
+  if(!CFG.payrollHistory?.length){alert('尚無封存記錄');return;}
+  const wb=XLSX.utils.book_new();
+  CFG.payrollHistory.forEach(h=>{
+    const[y,m]=h.month.split('-');
+    const hdr=['員工','門市','職位','底薪','達標獎金','團體績效','加班費','勞保(扣)','健保(扣)','請假扣款','實領薪資'];
+    const rows=h.results.map(r=>[r.empName,r.store,r.role,r.base,r.achieveBonus,r.teamBonus,r.overtime||0,r.labor||0,r.health||0,Math.abs(r.leave||0),r.net||0]);
+    const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+    XLSX.utils.book_append_sheet(wb,`${y}-${m}`,ws);
+  });
+  XLSX.writeFile(wb,'全部歷史薪資.xlsx');
+}
+
+function printHistoryMonth(idx){
+  const h=CFG.payrollHistory[idx]; if(!h) return;
+  const[y,m]=h.month.split('-');
+  const win=window.open('','_blank');
+  win.document.write(`<html><head><title>${y}年${parseInt(m)}月薪資單</title>
+  <style>body{font-family:sans-serif;padding:20px}.slip{border:1px solid #ccc;padding:12px;margin-bottom:12px;page-break-inside:avoid}.srow{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:3px 0}.gold{color:#b8860b}.red{color:#c00}</style></head><body>
+  <h2>${y}年${parseInt(m)}月 薪資單</h2>${renderHistorySlips(h)}</body></html>`);
+  win.document.close();win.print();
+}
+
+
+function openModal(id){D(id).classList.remove('hidden');}
+function closeModal(id){D(id).classList.add('hidden');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') document.querySelectorAll('.mo').forEach(m=>m.classList.add('hidden'));});
+let _u=0;
+function uid(){return 'u'+(++_u)+'_'+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n){return Number(n||0).toLocaleString('zh-TW');}
+function D(id){return document.getElementById(id);}
+
+/* ══════════════════════════════════════
+   GOOGLE DRIVE 同步
+══════════════════════════════════════ */
+const GDRIVE_FILENAME='myglasses_payroll_backup.json';
+let _gTokenClient=null,_gdriveInited=false,_gAccessToken=null,_gFileId=null;
+
+function gSetStatus(msg,isErr=false){
+  [D('gdriveStatus'),D('gdriveCardStatus')].forEach(el=>{
+    if(el){el.textContent=msg;el.style.color=isErr?'var(--ac5)':'var(--t2)';}
+  });
+}
+
+function initGdrive(){
+  const clientId=localStorage.getItem('mg_gclient')||'1067017484819-q4qvdvi6qcf9l03t2jv8i7n3f2j5ah1c.apps.googleusercontent.com';
+  const apiKey=localStorage.getItem('mg_gapikey')||'AIzaSyAIew9rxnm9N6aJjSTcxP08ta6OnSD4U6I';
+  if(D('gClientId')) D('gClientId').value=clientId;
+  if(D('gApiKey')) D('gApiKey').value=apiKey;
+  localStorage.setItem('mg_gclient',clientId);
+  localStorage.setItem('mg_gapikey',apiKey);
+  if(!clientId||!apiKey) return;
+  const btn=D('gdriveBtn');if(btn) btn.style.display='';
+  if(_gdriveInited){gSetStatus('✅ 已初始化，點「連接 Google Drive」授權');return;}
+  gSetStatus('⏳ 載入 Google API 中…');
+  try{
+    _gTokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:clientId,
+      scope:'https://www.googleapis.com/auth/drive.file',
+      callback:async(resp)=>{
+        if(resp.error){gSetStatus('授權失敗：'+resp.error,true);return;}
+        _gAccessToken=resp.access_token;
+        const btn=D('gdriveBtn');
+        if(btn){btn.textContent='☁️ 已連接';btn.style.borderColor='var(--ac2)';btn.style.color='var(--ac2)';}
+        gSetStatus('✅ 已連接 Google Drive，正在同步…');
+        await gdriveDownload();
+        await gdriveUpload(false);
+      }
+    });
+    gapi.load('client',async()=>{
+      await gapi.client.init({apiKey,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
+      _gdriveInited=true;
+      gSetStatus('✅ 已初始化，點「☁️ 連接 Google Drive」授權');
+      const btn=D('gdriveBtn');
+      if(btn){btn.style.display='';btn.textContent='☁️ 連接 Google Drive';}
+    });
+  }catch(e){gSetStatus('Google API 載入中，請稍候再試',false);}
+}
+
+function handleGdriveAuth(){
+  if(!_gTokenClient){
+    // API 可能還在載入，等一下再試
+    gSetStatus('⏳ Google API 載入中，請稍候 3 秒再點一次…');
+    setTimeout(()=>{
+      initGdrive();
+      if(_gTokenClient) gSetStatus('✅ 已初始化，請再點一次「連接」');
+      else gSetStatus('❌ 載入失敗，請確認網路連線正常，或重新整理頁面',true);
+    },3000);
+    return;
+  }
+  if(_gAccessToken){
+    gSetStatus('✅ 已連接，正在上傳…');
+    gdriveUpload(true);
+    return;
+  }
+  gSetStatus('⏳ 開啟 Google 授權視窗…');
+  _gTokenClient.requestAccessToken();
+}
+
+function buildBackupData(){
+  return{
+    cfg:{
+      templateTiers:CFG.templateTiers,teamTiers:CFG.teamTiers,
+      customFields:CFG.customFields,nextMonthTiers:CFG.nextMonthTiers,
+      employees:CFG.employees,
+      payrollHistory:CFG.payrollHistory||[],
+      monthlySalaries:CFG.monthlySalaries||{},
+      monthlyAdj:CFG.monthlyAdj||{},
+    },
+    reportArchive:(CFG.reportArchive||[]).map(a=>({
+      name:a.name,month:a.month,uploadedAt:a.uploadedAt,rowCount:a.rowCount,
+      preorderMap:a.preorderMap||{},custProdMap:a.custProdMap||{},
+      // 把報表 rows 也存進 Drive（這樣換電腦不需要重傳）
+      rows:RAW_STORE[a.month]||[]
+    }))
+  };
+}
+
+// 頁面關閉前提示尚未同步
+window.addEventListener('beforeunload',e=>{
+  if(_gAccessToken){
+    gdriveUpload(false);
+  }
+});
+
+async function gdriveUpload(showMsg=true){
+  if(!_gAccessToken){
+    if(showMsg) gSetStatus('❌ 尚未連接 Google Drive，請先點「☁️ 連接 / 重新授權」',true);
+    return;
+  }
+  // 確認有資料才上傳，避免上傳空資料蓋掉 Drive 備份
+  if(!CFG.employees||CFG.employees.length===0){
+    if(showMsg) gSetStatus('⚠️ 員工資料為空，取消上傳以保護 Drive 備份');
+    return;
+  }
+  if(showMsg) gSetStatus('⏳ 上傳中…');
+  try{
+    const content=JSON.stringify(buildBackupData());
+    if(!_gFileId){
+      const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${GDRIVE_FILENAME}'+and+trashed=false&fields=files(id)`,{headers:{Authorization:'Bearer '+_gAccessToken}});
+      const r=await res.json();
+      _gFileId=r.files?.[0]?.id||null;
+    }
+    let fileId=_gFileId;
+    if(!fileId){
+      const meta=await fetch('https://www.googleapis.com/drive/v3/files',{method:'POST',headers:{Authorization:'Bearer '+_gAccessToken,'Content-Type':'application/json'},body:JSON.stringify({name:GDRIVE_FILENAME,mimeType:'application/json'})});
+      const mj=await meta.json();fileId=_gFileId=mj.id;
+    }
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+_gAccessToken,'Content-Type':'application/json'},body:content});
+    if(showMsg) gSetStatus('☁️ 已同步至 Google Drive（'+new Date().toLocaleTimeString('zh-TW')+'）');
+  }catch(e){if(showMsg) gSetStatus('上傳失敗：'+e.message,true);}
+}
+
+async function gdriveDownload(){
+  if(!_gAccessToken) return;
+  try{
+    gSetStatus('⏳ 從 Google Drive 讀取…');
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${GDRIVE_FILENAME}'+and+trashed=false&fields=files(id)`,{headers:{Authorization:'Bearer '+_gAccessToken}});
+    const r=await res.json();
+    const fileId=r.files?.[0]?.id;
+    if(!fileId){gSetStatus('Drive 尚無備份');return;}
+    _gFileId=fileId;
+    const dlRes=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{headers:{Authorization:'Bearer '+_gAccessToken}});
+    const raw=await dlRes.text();
+    let data;
+    try{data=JSON.parse(raw);}catch(e){gSetStatus('❌ Drive 備份格式錯誤，保留本機資料',true);return;}
+
+    // 驗證資料有效性（至少要有員工資料）
+    const src=data.cfg||data;
+    if(!src.employees||!src.employees.length){
+      gSetStatus('⚠️ Drive 備份無員工資料，保留本機資料');
+      return;
+    }
+
+    // 確認要覆蓋
+    if(CFG.employees.length>0&&src.employees.length>0){
+      // 直接覆蓋（不詢問，因為 Drive 是最新的）
+    }
+
+    if(src.templateTiers) CFG.templateTiers=src.templateTiers;
+    if(src.teamTiers) CFG.teamTiers=src.teamTiers;
+    if(src.customFields) CFG.customFields=src.customFields;
+    if(src.nextMonthTiers) CFG.nextMonthTiers=src.nextMonthTiers;
+    if(src.employees) CFG.employees=src.employees;
+    if(src.payrollHistory) CFG.payrollHistory=src.payrollHistory;
+    if(src.monthlySalaries) CFG.monthlySalaries=src.monthlySalaries;
+    if(data.reportArchive) {
+      CFG.reportArchive=data.reportArchive.map(a=>{
+        // 從 Drive 還原 rows 到記憶體和 IndexedDB
+        if(a.rows&&a.rows.length>1){
+          RAW_STORE[a.month]=a.rows;
+          saveRows(a.month,a.rows); // 同步到 IndexedDB
+        }
+        // 不把 rows 存在 CFG.reportArchive 裡（太大）
+        const {rows:_,...rest}=a;
+        return rest;
+      });
+    }
+
+    // monthlyAdj：Drive 和本機合併，本機優先
+    try{
+      const adjRaw=localStorage.getItem('mg_v4_adj');
+      const localAdj=adjRaw?JSON.parse(adjRaw):{};
+      const driveAdj=src.monthlyAdj||{};
+      // 合併：先用 Drive 的，再用本機的覆蓋（本機優先）
+      CFG.monthlyAdj={...driveAdj,...localAdj};
+      localStorage.setItem('mg_v4_adj',JSON.stringify(CFG.monthlyAdj));
+    }catch(e){}
+
+    CFG.employees.forEach(e=>{
+      if(!e.afterService) e.afterService={};
+      if(!e.adjustments) e.adjustments={leave:0,overtime:0,note:''};
+    });
+
+    save();renderAll();renderArchiveList();updateCalcMonthSel();renderHistoryList();
+
+    const ds=D('dataStatus');
+    if(ds&&CFG.employees.length){ds.textContent=`✅ ${CFG.employees.length}位員工`;ds.style.color='var(--ac2)';}
+    gSetStatus('✅ 已從 Google Drive 同步（'+new Date().toLocaleTimeString('zh-TW')+'）');
+  }catch(e){
+    gSetStatus('❌ 下載失敗：'+e.message+' （本機資料保留）',true);
+    console.error('Drive下載失敗',e);
+  }
+}
+
+
+</script>
+</body>
+</html>
